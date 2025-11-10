@@ -1,0 +1,45 @@
+import express, { Application } from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import morgan from 'morgan';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+const app: Application = express();
+const PORT = process.env.PORT || 5000;
+
+// Middleware
+app.use(helmet());
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(morgan('dev'));
+
+// Health check route
+app.get('/health', (_req, res) => {
+  res.status(200).json({ status: 'OK', message: 'Server is running' });
+});
+
+// Import routes
+import templateRoutes from './routes/templateRoutes';
+import retroRoutes from './routes/retroRoutes';
+import { errorHandler, notFoundHandler } from './middleware/errorHandler';
+
+// Routes
+app.use('/api/templates', templateRoutes);
+app.use('/api/retros', retroRoutes);
+// app.use('/api/auth', authRoutes);
+// app.use('/api/cards', cardRoutes);
+// app.use('/api/actions', actionRoutes);
+// app.use('/api/users', userRoutes);
+
+// Error handling
+app.use(notFoundHandler);
+app.use(errorHandler);
+
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
+
+export default app;
