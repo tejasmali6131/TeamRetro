@@ -10,9 +10,29 @@ interface CreateRetroFormProps {
   onCancel: () => void;
 }
 
+type TabType = 'basic' | 'process' | 'options';
+
 export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroFormProps) {
   const [templates, setTemplates] = useState<Template[]>([]);
-  const [showSettings, setShowSettings] = useState(false);
+  const [activeTab, setActiveTab] = useState<TabType>('basic');
+  
+  // Process states
+  const [groupEnabled, setGroupEnabled] = useState(true);
+  const [voteEnabled, setVoteEnabled] = useState(true);
+  const [discussEnabled, setDiscussEnabled] = useState(true);
+  const [reviewEnabled, setReviewEnabled] = useState(true);
+  
+  // Duration states
+  const [groupDuration, setGroupDuration] = useState(5);
+  const [voteDuration, setVoteDuration] = useState(5);
+  const [discussDuration, setDiscussDuration] = useState(10 );
+  const [reviewDuration, setReviewDuration] = useState(5);
+  
+  // Options states (all enabled by default)
+  const [reactionsEnabled, setReactionsEnabled] = useState(true);
+  const [commentsEnabled, setCommentsEnabled] = useState(true);
+  const [commentReactionsEnabled, setCommentReactionsEnabled] = useState(true);
+  
   const { register, handleSubmit, formState: { errors } } = useForm<CreateRetroData>({
     defaultValues: {
       isAnonymous: false,
@@ -44,127 +64,474 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
     }
   };
 
+  const handleNext = () => {
+    if (activeTab === 'basic') {
+      setActiveTab('process');
+    } else if (activeTab === 'process') {
+      setActiveTab('options');
+    }
+  };
+
+  const handleStartInstantly = () => {
+    handleSubmit(onSubmit)();
+  };
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      {/* Session Name */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Session Name *
-        </label>
-        <input
-          type="text"
-          {...register('sessionName', { required: 'Session name is required' })}
-          className="input-field"
-          placeholder="e.g., Sprint 42 Retrospective"
-        />
-        {errors.sessionName && (
-          <p className="text-red-500 text-sm mt-1">{errors.sessionName.message}</p>
-        )}
-      </div>
-
-      {/* Context */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Context
-        </label>
-        <textarea
-          {...register('context')}
-          className="input-field"
-          rows={3}
-          placeholder="Add any context or goals for this retrospective..."
-        />
-      </div>
-
-      {/* Template Selection */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Template *
-        </label>
-        <select
-          {...register('templateId', { required: 'Template is required' })}
-          className="input-field"
-        >
-          <option value="">Select a template</option>
-          {templates.map((template) => (
-            <option key={template.id} value={template.id}>
-              {template.name}
-            </option>
-          ))}
-        </select>
-        {errors.templateId && (
-          <p className="text-red-500 text-sm mt-1">{errors.templateId.message}</p>
-        )}
-      </div>
-
-      {/* Anonymity */}
-      <div className="flex items-center gap-3">
-        <input
-          type="checkbox"
-          {...register('isAnonymous')}
-          id="isAnonymous"
-          className="w-4 h-4 text-kone-blue rounded focus:ring-kone-blue"
-        />
-        <label htmlFor="isAnonymous" className="text-sm font-medium text-gray-700">
-          Enable anonymous feedback
-        </label>
-      </div>
-
-      {/* Settings Toggle */}
-      <button
-        type="button"
-        onClick={() => setShowSettings(!showSettings)}
-        className="text-kone-blue text-sm font-medium hover:underline"
-      >
-        {showSettings ? '− Hide' : '+ Show'} Advanced Settings
-      </button>
-
-      {/* Advanced Settings */}
-      {showSettings && (
-        <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Voting Limit
-            </label>
-            <input
-              type="number"
-              {...register('votingLimit', { min: 1, max: 20 })}
-              className="input-field"
-              min="1"
-              max="20"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Timer Duration (minutes)
-            </label>
-            <input
-              type="number"
-              {...register('timerDuration', { min: 5, max: 120 })}
-              className="input-field"
-              min="5"
-              max="120"
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Action Buttons */}
-      <div className="flex gap-4 pt-4">
+    <div className="space-y-6">
+      {/* Tabs */}
+      <div className="flex gap-2 border-b border-gray-200">
         <button
           type="button"
-          onClick={onCancel}
-          className="btn-secondary flex-1"
+          onClick={() => setActiveTab('basic')}
+          className={`px-6 py-3 font-medium transition-colors relative ${
+            activeTab === 'basic'
+              ? 'text-kone-blue'
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
         >
-          Cancel
+          Basic Info
+          {activeTab === 'basic' && (
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-kone-blue"></div>
+          )}
         </button>
         <button
-          type="submit"
-          className="btn-primary flex-1"
+          type="button"
+          onClick={() => setActiveTab('process')}
+          className={`px-6 py-3 font-medium transition-colors relative ${
+            activeTab === 'process'
+              ? 'text-kone-blue'
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
         >
-          Create Retrospective
+          Process
+          {activeTab === 'process' && (
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-kone-blue"></div>
+          )}
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('options')}
+          className={`px-6 py-3 font-medium transition-colors relative ${
+            activeTab === 'options'
+              ? 'text-kone-blue'
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          Options
+          {activeTab === 'options' && (
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-kone-blue"></div>
+          )}
         </button>
       </div>
-    </form>
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        {/* Basic Info Tab */}
+        {activeTab === 'basic' && (
+          <div className="space-y-6">
+            {/* Session Name */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Session Name *
+              </label>
+              <input
+                type="text"
+                {...register('sessionName', { required: 'Session name is required' })}
+                className="input-field"
+                placeholder="e.g., Sprint 42 Retrospective"
+              />
+              {errors.sessionName && (
+                <p className="text-red-500 text-sm mt-1">{errors.sessionName.message}</p>
+              )}
+            </div>
+
+            {/* Context */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Context
+              </label>
+              <textarea
+                {...register('context')}
+                className="input-field"
+                rows={3}
+                placeholder="Add any context or goals for this retrospective..."
+              />
+            </div>
+
+            {/* Template Selection */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Template *
+              </label>
+              <select
+                {...register('templateId', { required: 'Template is required' })}
+                className="input-field"
+              >
+                <option value="">Select a template</option>
+                {templates.map((template) => (
+                  <option key={template.id} value={template.id}>
+                    {template.name}
+                  </option>
+                ))}
+              </select>
+              {errors.templateId && (
+                <p className="text-red-500 text-sm mt-1">{errors.templateId.message}</p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Process Tab */}
+        {activeTab === 'process' && (
+          <div className="space-y-4">
+            <p className="text-gray-600 text-sm mb-4">
+              Configure how your retrospective session will flow and what phases it will include.
+            </p>
+
+            {/* Brainstorm - Always enabled */}
+            <div className="card bg-white border-2 border-kone-blue">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <h4 className="font-semibold text-gray-900 mb-1">Brainstorm</h4>
+                  <p className="text-sm text-gray-600">
+                    Team members share their thoughts and ideas. This phase is required.
+                  </p>
+                </div>
+                <div className="flex-shrink-0 ml-4">
+                  <div className="w-12 h-6 bg-kone-blue rounded-full flex items-center px-1 cursor-not-allowed opacity-75">
+                    <div className="w-4 h-4 bg-white rounded-full ml-auto"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Group */}
+            <div className={`card border-2 transition-colors ${
+              groupEnabled ? 'bg-white border-kone-blue' : 'bg-gray-50 border-gray-200'
+            }`}>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex-1">
+                  <h4 className="font-semibold text-gray-900 mb-1">Group</h4>
+                  <p className="text-sm text-gray-600">
+                    Organize similar ideas together to identify common themes.
+                  </p>
+                </div>
+                <div className="flex-shrink-0 ml-4">
+                  <button
+                    type="button"
+                    onClick={() => setGroupEnabled(!groupEnabled)}
+                    className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
+                      groupEnabled ? 'bg-kone-blue' : 'bg-gray-300'
+                    }`}
+                  >
+                    <div className={`w-4 h-4 bg-white rounded-full transition-transform ${
+                      groupEnabled ? 'translate-x-6' : 'translate-x-0'
+                    }`}></div>
+                  </button>
+                </div>
+              </div>
+              {groupEnabled && (
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Duration: {groupDuration} minutes
+                  </label>
+                  <input
+                    type="range"
+                    min="2"
+                    max="15"
+                    step="1"
+                    value={groupDuration}
+                    onChange={(e) => setGroupDuration(parseInt(e.target.value))}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-kone-blue"
+                  />
+                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                    <span>2 min</span>
+                    <span>15 min</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Vote */}
+            <div className={`card border-2 transition-colors ${
+              voteEnabled ? 'bg-white border-kone-blue' : 'bg-gray-50 border-gray-200'
+            }`}>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex-1">
+                  <h4 className="font-semibold text-gray-900 mb-1">Vote</h4>
+                  <p className="text-sm text-gray-600">
+                    Team members vote on the most important topics to discuss.
+                  </p>
+                </div>
+                <div className="flex-shrink-0 ml-4">
+                  <button
+                    type="button"
+                    onClick={() => setVoteEnabled(!voteEnabled)}
+                    className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
+                      voteEnabled ? 'bg-kone-blue' : 'bg-gray-300'
+                    }`}
+                  >
+                    <div className={`w-4 h-4 bg-white rounded-full transition-transform ${
+                      voteEnabled ? 'translate-x-6' : 'translate-x-0'
+                    }`}></div>
+                  </button>
+                </div>
+              </div>
+              {voteEnabled && (
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Duration: {voteDuration} minutes
+                  </label>
+                  <input
+                    type="range"
+                    min="2"
+                    max="15"
+                    step="1"
+                    value={voteDuration}
+                    onChange={(e) => setVoteDuration(parseInt(e.target.value))}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-kone-blue"
+                  />
+                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                    <span>2 min</span>
+                    <span>15 min</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Discuss */}
+            <div className={`card border-2 transition-colors ${
+              discussEnabled ? 'bg-white border-kone-blue' : 'bg-gray-50 border-gray-200'
+            }`}>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex-1">
+                  <h4 className="font-semibold text-gray-900 mb-1">Discuss</h4>
+                  <p className="text-sm text-gray-600">
+                    Team discusses the most voted topics in detail.
+                  </p>
+                </div>
+                <div className="flex-shrink-0 ml-4">
+                  <button
+                    type="button"
+                    onClick={() => setDiscussEnabled(!discussEnabled)}
+                    className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
+                      discussEnabled ? 'bg-kone-blue' : 'bg-gray-300'
+                    }`}
+                  >
+                    <div className={`w-4 h-4 bg-white rounded-full transition-transform ${
+                      discussEnabled ? 'translate-x-6' : 'translate-x-0'
+                    }`}></div>
+                  </button>
+                </div>
+              </div>
+              {discussEnabled && (
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Duration: {discussDuration} minutes
+                  </label>
+                  <input
+                    type="range"
+                    min="2"
+                    max="30"
+                    step="1"
+                    value={discussDuration}
+                    onChange={(e) => setDiscussDuration(parseInt(e.target.value))}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-kone-blue"
+                  />
+                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                    <span>2 min</span>
+                    <span>30 min</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Review */}
+            <div className={`card border-2 transition-colors ${
+              reviewEnabled ? 'bg-white border-kone-blue' : 'bg-gray-50 border-gray-200'
+            }`}>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex-1">
+                  <h4 className="font-semibold text-gray-900 mb-1">Review</h4>
+                  <p className="text-sm text-gray-600">
+                    Review action items and key takeaways from the session.
+                  </p>
+                </div>
+                <div className="flex-shrink-0 ml-4">
+                  <button
+                    type="button"
+                    onClick={() => setReviewEnabled(!reviewEnabled)}
+                    className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
+                      reviewEnabled ? 'bg-kone-blue' : 'bg-gray-300'
+                    }`}
+                  >
+                    <div className={`w-4 h-4 bg-white rounded-full transition-transform ${
+                      reviewEnabled ? 'translate-x-6' : 'translate-x-0'
+                    }`}></div>
+                  </button>
+                </div>
+              </div>
+              {reviewEnabled && (
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Duration: {reviewDuration} minutes
+                  </label>
+                  <input
+                    type="range"
+                    min="2"
+                    max="15"
+                    step="1"
+                    value={reviewDuration}
+                    onChange={(e) => setReviewDuration(parseInt(e.target.value))}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-kone-blue"
+                  />
+                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                    <span>2 min</span>
+                    <span>15 min</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Report - Always enabled */}
+            <div className="card bg-white border-2 border-kone-blue">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <h4 className="font-semibold text-gray-900 mb-1">Report</h4>
+                  <p className="text-sm text-gray-600">
+                    Generate a summary report of the retrospective. This phase is required.
+                  </p>
+                </div>
+                <div className="flex-shrink-0 ml-4">
+                  <div className="w-12 h-6 bg-kone-blue rounded-full flex items-center px-1 cursor-not-allowed opacity-75">
+                    <div className="w-4 h-4 bg-white rounded-full ml-auto"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Options Tab */}
+        {activeTab === 'options' && (
+          <div className="space-y-4">
+            <p className="text-gray-600 text-sm mb-4">
+              Customize additional settings for your retrospective session.
+            </p>
+
+            {/* Reactions */}
+            <div className="card border-2 border-kone-blue bg-white">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <h4 className="font-semibold text-gray-900 mb-1">Reactions</h4>
+                  <p className="text-sm text-gray-600">
+                    Allow team members to react to cards with emojis.
+                  </p>
+                </div>
+                <div className="flex-shrink-0 ml-4">
+                  <button
+                    type="button"
+                    onClick={() => setReactionsEnabled(!reactionsEnabled)}
+                    className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
+                      reactionsEnabled ? 'bg-kone-blue' : 'bg-gray-300'
+                    }`}
+                  >
+                    <div className={`w-4 h-4 bg-white rounded-full transition-transform ${
+                      reactionsEnabled ? 'translate-x-6' : 'translate-x-0'
+                    }`}></div>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Comments */}
+            <div className="card border-2 border-kone-blue bg-white">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <h4 className="font-semibold text-gray-900 mb-1">Comments</h4>
+                  <p className="text-sm text-gray-600">
+                    Allow team members to comment on cards.
+                  </p>
+                </div>
+                <div className="flex-shrink-0 ml-4">
+                  <button
+                    type="button"
+                    onClick={() => setCommentsEnabled(!commentsEnabled)}
+                    className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
+                      commentsEnabled ? 'bg-kone-blue' : 'bg-gray-300'
+                    }`}
+                  >
+                    <div className={`w-4 h-4 bg-white rounded-full transition-transform ${
+                      commentsEnabled ? 'translate-x-6' : 'translate-x-0'
+                    }`}></div>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Comment Reactions */}
+            <div className="card border-2 border-kone-blue bg-white">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <h4 className="font-semibold text-gray-900 mb-1">Comment Reactions</h4>
+                  <p className="text-sm text-gray-600">
+                    Allow team members to react to comments with emojis.
+                  </p>
+                </div>
+                <div className="flex-shrink-0 ml-4">
+                  <button
+                    type="button"
+                    onClick={() => setCommentReactionsEnabled(!commentReactionsEnabled)}
+                    className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
+                      commentReactionsEnabled ? 'bg-kone-blue' : 'bg-gray-300'
+                    }`}
+                  >
+                    <div className={`w-4 h-4 bg-white rounded-full transition-transform ${
+                      commentReactionsEnabled ? 'translate-x-6' : 'translate-x-0'
+                    }`}></div>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Action Buttons */}
+        <div className="flex gap-4 pt-4">
+          {activeTab !== 'options' ? (
+            <button
+              type="button"
+              onClick={handleStartInstantly}
+              className="btn-secondary flex-1"
+            >
+              Start Instantly
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={onCancel}
+              className="btn-secondary flex-1"
+            >
+              Cancel
+            </button>
+          )}
+          {activeTab !== 'options' ? (
+            <button
+              type="button"
+              onClick={handleNext}
+              className="btn-primary flex-1"
+            >
+              Customize More
+            </button>
+          ) : (
+            <button
+              type="submit"
+              className="btn-primary flex-1"
+            >
+              Start Retrospective
+            </button>
+          )}
+        </div>
+      </form>
+    </div>
   );
 }
