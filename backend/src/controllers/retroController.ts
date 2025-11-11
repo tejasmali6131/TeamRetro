@@ -47,7 +47,18 @@ export const getRetroById = (req: Request, res: Response): void => {
 
 export const createRetro = (req: Request, res: Response): void => {
   try {
-    const { sessionName, context, templateId, isAnonymous, votingLimit, timerDuration } = req.body;
+    const { 
+      sessionName, 
+      context, 
+      templateId, 
+      isAnonymous, 
+      votingLimit, 
+      timerDuration,
+      stages,
+      reactionsEnabled,
+      commentsEnabled,
+      commentReactionsEnabled
+    } = req.body;
     
     if (!sessionName || !templateId) {
       res.status(400).json({ message: 'Session name and template are required' });
@@ -67,7 +78,18 @@ export const createRetro = (req: Request, res: Response): void => {
       isAnonymous: isAnonymous || false,
       votingLimit: votingLimit || 5,
       timerDuration: timerDuration || null,
-      status: 'draft'
+      status: 'draft',
+      stages: stages || [
+        { id: 'brainstorm', name: 'Brainstorm', duration: 0, enabled: true },
+        { id: 'group', name: 'Group', duration: 0, enabled: true },
+        { id: 'vote', name: 'Vote', duration: 0, enabled: true },
+        { id: 'discuss', name: 'Discuss', duration: 0, enabled: true },
+        { id: 'review', name: 'Review', duration: 0, enabled: true },
+        { id: 'report', name: 'Report', duration: 0, enabled: true },
+      ],
+      reactionsEnabled: reactionsEnabled !== undefined ? reactionsEnabled : true,
+      commentsEnabled: commentsEnabled !== undefined ? commentsEnabled : true,
+      commentReactionsEnabled: commentReactionsEnabled !== undefined ? commentReactionsEnabled : true,
     });
     
     res.status(201).json(newRetro);
