@@ -145,27 +145,27 @@ export default function RetroBoard() {
 
   if (!retro) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-kone-blue mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading retrospective...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-kone-blue dark:border-kone-lightBlue mx-auto"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading retrospective...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
       {/* Header from Landing Page */}
       <Header />
 
       {/* Top Navigation Bar with Stages */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10 shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="mb-4">
-            <h1 className="text-2xl font-bold text-gray-900">{retro.sessionName}</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{retro.sessionName}</h1>
             {retro.context && (
-              <p className="text-sm text-gray-600 mt-1">{retro.context}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{retro.context}</p>
             )}
           </div>
 
@@ -176,10 +176,10 @@ export default function RetroBoard() {
                 <div
                   className={`px-4 py-2 rounded-lg font-medium transition-all ${
                     index === currentStageIndex
-                      ? 'bg-kone-blue text-white shadow-md'
+                      ? 'bg-kone-blue dark:bg-kone-lightBlue text-white shadow-md'
                       : index < currentStageIndex
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-gray-100 text-gray-600'
+                      ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
                   }`}
                 >
                   <div className="flex items-center gap-2">
@@ -194,7 +194,7 @@ export default function RetroBoard() {
                 </div>
                 {index < enabledStages.length - 1 && (
                   <ChevronRight className={`w-5 h-5 flex-shrink-0 ${
-                    index < currentStageIndex ? 'text-green-600' : 'text-gray-400'
+                    index < currentStageIndex ? 'text-green-600 dark:text-green-400' : 'text-gray-400 dark:text-gray-600'
                   }`} />
                 )}
               </div>
@@ -209,15 +209,15 @@ export default function RetroBoard() {
         <div className="flex-1 flex flex-col">
           {/* Timer and Controls */}
           {currentStage && currentStage.duration > 0 && (
-            <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <Clock className="w-6 h-6 text-kone-blue" />
+                  <Clock className="w-6 h-6 text-kone-blue dark:text-kone-lightBlue" />
                   <div>
-                    <h3 className="font-semibold text-gray-900">
+                    <h3 className="font-semibold text-gray-900 dark:text-gray-100">
                       {currentStage.name} Phase
                     </h3>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
                       {isTimerRunning
                         ? `Time remaining: ${formatTime(timeRemaining)}`
                         : `Duration: ${Math.floor(currentStage.duration / 60)} minutes`}
@@ -243,8 +243,8 @@ export default function RetroBoard() {
           )}
 
           {/* Stage Content Area */}
-          <div className="bg-white rounded-lg shadow-md p-6 flex-1">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 flex-1">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">
               {currentStage?.name} Stage
             </h2>
 
@@ -254,26 +254,27 @@ export default function RetroBoard() {
                 {retro.template.columns.map((column) => (
                   <div
                     key={column.id}
-                    className="bg-gray-50 rounded-lg p-4 min-h-[400px]"
+                    className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 min-h-[400px]"
                   >
+                    {/* Inline styles needed for dynamic template colors from database */}
                     <div
                       className="flex items-center gap-2 mb-4 pb-2 border-b-2"
-                      style={{ borderColor: column.color }}
+                      style={{ borderBottomColor: column.color }}
                     >
                       <div
                         className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: column.color }}
+                        style={{ background: column.color }}
                       ></div>
-                      <h3 className="font-semibold text-gray-900">{column.name}</h3>
+                      <h3 className="font-semibold text-gray-900 dark:text-gray-100">{column.name}</h3>
                     </div>
-                    <p className="text-sm text-gray-500 mb-4">{column.placeholder}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{column.placeholder}</p>
                     <div className="space-y-2">
                       {/* Cards will be added here */}
-                      <div className="text-center py-8 text-gray-400 text-sm">
+                      <div className="text-center py-8 text-gray-400 dark:text-gray-500 text-sm">
                         No cards yet. Add your thoughts!
                       </div>
                     </div>
-                    <button className="w-full mt-4 px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-kone-blue hover:text-kone-blue transition-colors">
+                    <button className="w-full mt-4 px-4 py-2 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-gray-600 dark:text-gray-400 hover:border-kone-blue dark:hover:border-kone-lightBlue hover:text-kone-blue dark:hover:text-kone-lightBlue transition-colors">
                       + Add Card
                     </button>
                   </div>
@@ -284,10 +285,10 @@ export default function RetroBoard() {
             {/* Other Stages Placeholder */}
             {currentStage?.id !== 'brainstorm' && (
               <div className="text-center py-12">
-                <p className="text-gray-600 mb-4">
+                <p className="text-gray-600 dark:text-gray-400 mb-4">
                   {currentStage?.name} stage content will be displayed here.
                 </p>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 dark:text-gray-600">
                   This functionality will be implemented next.
                 </p>
               </div>
@@ -315,13 +316,13 @@ export default function RetroBoard() {
 
         {/* Right Sidebar - Participants */}
         <div className="w-80 flex-shrink-0">
-          <div className="bg-white rounded-lg shadow-md p-6 sticky top-24">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 sticky top-24">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <Users className="w-5 h-5 text-kone-blue" />
-                <h3 className="font-semibold text-gray-900">Participants</h3>
+                <Users className="w-5 h-5 text-kone-blue dark:text-kone-lightBlue" />
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100">Participants</h3>
               </div>
-              <span className="text-sm text-gray-600 bg-gray-100 px-2 py-1 rounded">
+              <span className="text-sm text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
                 {participants.length}
               </span>
             </div>
@@ -331,19 +332,19 @@ export default function RetroBoard() {
                 participants.map((participant) => (
                   <div
                     key={participant.id}
-                    className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                    className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                   >
-                    <div className="w-10 h-10 bg-kone-blue text-white rounded-full flex items-center justify-center font-semibold">
+                    <div className="w-10 h-10 bg-kone-blue dark:bg-kone-lightBlue text-white rounded-full flex items-center justify-center font-semibold">
                       {participant.name.charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1">
-                      <p className="font-medium text-gray-900">{participant.name}</p>
-                      <p className="text-xs text-gray-500">Online</p>
+                      <p className="font-medium text-gray-900 dark:text-gray-100">{participant.name}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Online</p>
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="text-center py-8 text-gray-500">
+                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                   <Users className="w-12 h-12 mx-auto mb-2 opacity-50" />
                   <p className="text-sm">No participants yet</p>
                   <p className="text-xs mt-1">Share the link to invite others</p>

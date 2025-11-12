@@ -95,19 +95,19 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
   return (
     <div>
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-gray-200 mb-6">
+      <div className="flex gap-2 border-b border-gray-200 dark:border-gray-700 mb-6">
         <button
           type="button"
           onClick={() => setActiveTab('basic')}
           className={`px-6 py-3 font-medium transition-colors relative ${
             activeTab === 'basic'
-              ? 'text-kone-blue'
-              : 'text-gray-600 hover:text-gray-900'
+              ? 'text-kone-blue dark:text-kone-lightBlue'
+              : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100'
           }`}
         >
           Basic Info
           {activeTab === 'basic' && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-kone-blue"></div>
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-kone-blue dark:bg-kone-lightBlue"></div>
           )}
         </button>
         <button
@@ -115,13 +115,13 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
           onClick={() => setActiveTab('process')}
           className={`px-6 py-3 font-medium transition-colors relative ${
             activeTab === 'process'
-              ? 'text-kone-blue'
-              : 'text-gray-600 hover:text-gray-900'
+              ? 'text-kone-blue dark:text-kone-lightBlue'
+              : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100'
           }`}
         >
           Process
           {activeTab === 'process' && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-kone-blue"></div>
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-kone-blue dark:bg-kone-lightBlue"></div>
           )}
         </button>
         <button
@@ -129,19 +129,19 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
           onClick={() => setActiveTab('options')}
           className={`px-6 py-3 font-medium transition-colors relative ${
             activeTab === 'options'
-              ? 'text-kone-blue'
-              : 'text-gray-600 hover:text-gray-900'
+              ? 'text-kone-blue dark:text-kone-lightBlue'
+              : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100'
           }`}
         >
           Options
           {activeTab === 'options' && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-kone-blue"></div>
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-kone-blue dark:bg-kone-lightBlue"></div>
           )}
         </button>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)}>
-        {/* Content Area with fixed height and scroll */}
+        {/* Content Area */}
         <div className="h-[320px] overflow-y-auto pr-2">
           <div className="space-y-6">
             {/* Basic Info Tab */}
@@ -179,7 +179,7 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
               />
             )}
 
-            {/* Action Buttons - At the end of content */}
+            {/* Action Buttons */}
             <div className="flex gap-4 pt-4">
           {activeTab !== 'options' ? (
             <button

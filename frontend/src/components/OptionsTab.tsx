@@ -17,16 +17,16 @@ export default function OptionsTab({
 }: OptionsTabProps) {
   return (
     <div className="space-y-4">
-      <p className="text-gray-600 text-sm mb-4">
+      <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
         Customize additional settings for your retrospective session.
       </p>
 
       {/* Reactions */}
-      <div className="card border-2 border-kone-blue bg-white">
+      <div className="card border-2 border-kone-blue dark:border-kone-lightBlue bg-white dark:bg-gray-800">
         <div className="flex items-center justify-between">
           <div className="flex-1">
-            <h4 className="font-semibold text-gray-900 mb-1">Reactions</h4>
-            <p className="text-sm text-gray-600">
+            <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">Reactions</h4>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               Allow team members to react to cards with emojis.
             </p>
           </div>
@@ -36,7 +36,7 @@ export default function OptionsTab({
               onClick={() => setReactionsEnabled(!reactionsEnabled)}
               aria-label={`${reactionsEnabled ? 'Disable' : 'Enable'} reactions`}
               className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
-                reactionsEnabled ? 'bg-kone-blue' : 'bg-gray-300'
+                reactionsEnabled ? 'bg-kone-blue dark:bg-kone-lightBlue' : 'bg-gray-300 dark:bg-gray-600'
               }`}
             >
               <div className={`w-4 h-4 bg-white rounded-full transition-transform ${
@@ -48,11 +48,11 @@ export default function OptionsTab({
       </div>
 
       {/* Comments */}
-      <div className="card border-2 border-kone-blue bg-white">
+      <div className="card border-2 border-kone-blue dark:border-kone-lightBlue bg-white dark:bg-gray-800">
         <div className="flex items-center justify-between">
           <div className="flex-1">
-            <h4 className="font-semibold text-gray-900 mb-1">Comments</h4>
-            <p className="text-sm text-gray-600">
+            <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">Comments</h4>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               Allow team members to comment on cards.
             </p>
           </div>
@@ -62,7 +62,7 @@ export default function OptionsTab({
               onClick={() => setCommentsEnabled(!commentsEnabled)}
               aria-label={`${commentsEnabled ? 'Disable' : 'Enable'} comments`}
               className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
-                commentsEnabled ? 'bg-kone-blue' : 'bg-gray-300'
+                commentsEnabled ? 'bg-kone-blue dark:bg-kone-lightBlue' : 'bg-gray-300 dark:bg-gray-600'
               }`}
             >
               <div className={`w-4 h-4 bg-white rounded-full transition-transform ${
@@ -74,11 +74,11 @@ export default function OptionsTab({
       </div>
 
       {/* Comment Reactions */}
-      <div className="card border-2 border-kone-blue bg-white">
+      <div className="card border-2 border-kone-blue dark:border-kone-lightBlue bg-white dark:bg-gray-800">
         <div className="flex items-center justify-between">
           <div className="flex-1">
-            <h4 className="font-semibold text-gray-900 mb-1">Comment Reactions</h4>
-            <p className="text-sm text-gray-600">
+            <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">Comment Reactions</h4>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               Allow team members to react to comments with emojis.
             </p>
           </div>
@@ -88,7 +88,7 @@ export default function OptionsTab({
               onClick={() => setCommentReactionsEnabled(!commentReactionsEnabled)}
               aria-label={`${commentReactionsEnabled ? 'Disable' : 'Enable'} comment reactions`}
               className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
-                commentReactionsEnabled ? 'bg-kone-blue' : 'bg-gray-300'
+                commentReactionsEnabled ? 'bg-kone-blue dark:bg-kone-lightBlue' : 'bg-gray-300 dark:bg-gray-600'
               }`}
             >
               <div className={`w-4 h-4 bg-white rounded-full transition-transform ${

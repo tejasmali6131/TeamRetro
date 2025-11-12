@@ -12,7 +12,7 @@ export default function BasicInfoTab({ register, errors, templates }: BasicInfoT
     <div className="space-y-6">
       {/* Session Name */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Session Name *
         </label>
         <input
@@ -22,13 +22,13 @@ export default function BasicInfoTab({ register, errors, templates }: BasicInfoT
           placeholder="e.g., Sprint 42 Retrospective"
         />
         {errors.sessionName && (
-          <p className="text-red-500 text-sm mt-1">{errors.sessionName.message}</p>
+          <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.sessionName.message}</p>
         )}
       </div>
 
       {/* Context */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Context
         </label>
         <textarea
@@ -41,7 +41,7 @@ export default function BasicInfoTab({ register, errors, templates }: BasicInfoT
 
       {/* Template Selection */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Template *
         </label>
         <select
@@ -56,7 +56,7 @@ export default function BasicInfoTab({ register, errors, templates }: BasicInfoT
           ))}
         </select>
         {errors.templateId && (
-          <p className="text-red-500 text-sm mt-1">{errors.templateId.message}</p>
+          <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.templateId.message}</p>
         )}
       </div>
     </div>
