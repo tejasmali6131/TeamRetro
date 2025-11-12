@@ -4,6 +4,9 @@ import toast from 'react-hot-toast';
 import { Retro, CreateRetroData } from '@/types/retro';
 import { Template } from '@/types/retro';
 import api from '@/services/api';
+import BasicInfoTab from './BasicInfoTab';
+import ProcessTab from './ProcessTab';
+import OptionsTab from './OptionsTab';
 
 interface CreateRetroFormProps {
   onSuccess: (retro: Retro) => void;
@@ -76,7 +79,8 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
     }
   };
 
-  const handleNext = () => {
+  const handleNext = (e?: React.MouseEvent<HTMLButtonElement>) => {
+    e?.preventDefault();
     if (activeTab === 'basic') {
       setActiveTab('process');
     } else if (activeTab === 'process') {
@@ -89,9 +93,9 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
   };
 
   return (
-    <div className="space-y-6">
+    <div>
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-gray-200">
+      <div className="flex gap-2 border-b border-gray-200 mb-6">
         <button
           type="button"
           onClick={() => setActiveTab('basic')}
@@ -136,306 +140,47 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
         </button>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        {/* Basic Info Tab */}
-        {activeTab === 'basic' && (
+      <form onSubmit={handleSubmit(onSubmit)}>
+        {/* Content Area with fixed height and scroll */}
+        <div className="h-[320px] overflow-y-auto pr-2">
           <div className="space-y-6">
-            {/* Session Name */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Session Name *
-              </label>
-              <input
-                type="text"
-                {...register('sessionName', { required: 'Session name is required' })}
-                className="input-field"
-                placeholder="e.g., Sprint 42 Retrospective"
+            {/* Basic Info Tab */}
+            {activeTab === 'basic' && (
+              <BasicInfoTab 
+                register={register} 
+                errors={errors} 
+                templates={templates} 
               />
-              {errors.sessionName && (
-                <p className="text-red-500 text-sm mt-1">{errors.sessionName.message}</p>
-              )}
-            </div>
+            )}
 
-            {/* Context */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Context
-              </label>
-              <textarea
-                {...register('context')}
-                className="input-field"
-                rows={3}
-                placeholder="Add any context or goals for this retrospective..."
+            {/* Process Tab */}
+            {activeTab === 'process' && (
+              <ProcessTab
+                groupEnabled={groupEnabled}
+                setGroupEnabled={setGroupEnabled}
+                voteEnabled={voteEnabled}
+                setVoteEnabled={setVoteEnabled}
+                discussEnabled={discussEnabled}
+                setDiscussEnabled={setDiscussEnabled}
+                reviewEnabled={reviewEnabled}
+                setReviewEnabled={setReviewEnabled}
               />
-            </div>
+            )}
 
-            {/* Template Selection */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Template *
-              </label>
-              <select
-                {...register('templateId', { required: 'Template is required' })}
-                className="input-field"
-              >
-                <option value="">Select a template</option>
-                {templates.map((template) => (
-                  <option key={template.id} value={template.id}>
-                    {template.name}
-                  </option>
-                ))}
-              </select>
-              {errors.templateId && (
-                <p className="text-red-500 text-sm mt-1">{errors.templateId.message}</p>
-              )}
-            </div>
-          </div>
-        )}
+            {/* Options Tab */}
+            {activeTab === 'options' && (
+              <OptionsTab
+                reactionsEnabled={reactionsEnabled}
+                setReactionsEnabled={setReactionsEnabled}
+                commentsEnabled={commentsEnabled}
+                setCommentsEnabled={setCommentsEnabled}
+                commentReactionsEnabled={commentReactionsEnabled}
+                setCommentReactionsEnabled={setCommentReactionsEnabled}
+              />
+            )}
 
-        {/* Process Tab */}
-        {activeTab === 'process' && (
-          <div className="space-y-4">
-            <p className="text-gray-600 text-sm mb-4">
-              Configure how your retrospective session will flow and what phases it will include.
-            </p>
-
-            {/* Brainstorm - Always enabled */}
-            <div className="card bg-white border-2 border-kone-blue">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900 mb-1">Brainstorm</h4>
-                  <p className="text-sm text-gray-600">
-                    Team members share their thoughts and ideas. This phase is required.
-                  </p>
-                </div>
-                <div className="flex-shrink-0 ml-4">
-                  <div className="w-12 h-6 bg-kone-blue rounded-full flex items-center px-1 cursor-not-allowed opacity-75">
-                    <div className="w-4 h-4 bg-white rounded-full ml-auto"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Group */}
-            <div className={`card border-2 transition-colors ${
-              groupEnabled ? 'bg-white border-kone-blue' : 'bg-gray-50 border-gray-200'
-            }`}>
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900 mb-1">Group</h4>
-                  <p className="text-sm text-gray-600">
-                    Organize similar ideas together to identify common themes.
-                  </p>
-                </div>
-                <div className="flex-shrink-0 ml-4">
-                  <button
-                    type="button"
-                    onClick={() => setGroupEnabled(!groupEnabled)}
-                    aria-label={`${groupEnabled ? 'Disable' : 'Enable'} group phase`}
-                    className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
-                      groupEnabled ? 'bg-kone-blue' : 'bg-gray-300'
-                    }`}
-                  >
-                    <div className={`w-4 h-4 bg-white rounded-full transition-transform ${
-                      groupEnabled ? 'translate-x-6' : 'translate-x-0'
-                    }`}></div>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Vote */}
-            <div className={`card border-2 transition-colors ${
-              voteEnabled ? 'bg-white border-kone-blue' : 'bg-gray-50 border-gray-200'
-            }`}>
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900 mb-1">Vote</h4>
-                  <p className="text-sm text-gray-600">
-                    Team members vote on the most important topics to discuss.
-                  </p>
-                </div>
-                <div className="flex-shrink-0 ml-4">
-                  <button
-                    type="button"
-                    onClick={() => setVoteEnabled(!voteEnabled)}
-                    aria-label={`${voteEnabled ? 'Disable' : 'Enable'} vote phase`}
-                    className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
-                      voteEnabled ? 'bg-kone-blue' : 'bg-gray-300'
-                    }`}
-                  >
-                    <div className={`w-4 h-4 bg-white rounded-full transition-transform ${
-                      voteEnabled ? 'translate-x-6' : 'translate-x-0'
-                    }`}></div>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Discuss */}
-            <div className={`card border-2 transition-colors ${
-              discussEnabled ? 'bg-white border-kone-blue' : 'bg-gray-50 border-gray-200'
-            }`}>
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900 mb-1">Discuss</h4>
-                  <p className="text-sm text-gray-600">
-                    Team discusses the most voted topics in detail.
-                  </p>
-                </div>
-                <div className="flex-shrink-0 ml-4">
-                  <button
-                    type="button"
-                    onClick={() => setDiscussEnabled(!discussEnabled)}
-                    aria-label={`${discussEnabled ? 'Disable' : 'Enable'} discuss phase`}
-                    className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
-                      discussEnabled ? 'bg-kone-blue' : 'bg-gray-300'
-                    }`}
-                  >
-                    <div className={`w-4 h-4 bg-white rounded-full transition-transform ${
-                      discussEnabled ? 'translate-x-6' : 'translate-x-0'
-                    }`}></div>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Review */}
-            <div className={`card border-2 transition-colors ${
-              reviewEnabled ? 'bg-white border-kone-blue' : 'bg-gray-50 border-gray-200'
-            }`}>
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900 mb-1">Review</h4>
-                  <p className="text-sm text-gray-600">
-                    Review action items and key takeaways from the session.
-                  </p>
-                </div>
-                <div className="flex-shrink-0 ml-4">
-                  <button
-                    type="button"
-                    onClick={() => setReviewEnabled(!reviewEnabled)}
-                    aria-label={`${reviewEnabled ? 'Disable' : 'Enable'} review phase`}
-                    className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
-                      reviewEnabled ? 'bg-kone-blue' : 'bg-gray-300'
-                    }`}
-                  >
-                    <div className={`w-4 h-4 bg-white rounded-full transition-transform ${
-                      reviewEnabled ? 'translate-x-6' : 'translate-x-0'
-                    }`}></div>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Report - Always enabled */}
-            <div className="card bg-white border-2 border-kone-blue">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900 mb-1">Report</h4>
-                  <p className="text-sm text-gray-600">
-                    Generate a summary report of the retrospective. This phase is required.
-                  </p>
-                </div>
-                <div className="flex-shrink-0 ml-4">
-                  <div className="w-12 h-6 bg-kone-blue rounded-full flex items-center px-1 cursor-not-allowed opacity-75">
-                    <div className="w-4 h-4 bg-white rounded-full ml-auto"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Options Tab */}
-        {activeTab === 'options' && (
-          <div className="space-y-4">
-            <p className="text-gray-600 text-sm mb-4">
-              Customize additional settings for your retrospective session.
-            </p>
-
-            {/* Reactions */}
-            <div className="card border-2 border-kone-blue bg-white">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900 mb-1">Reactions</h4>
-                  <p className="text-sm text-gray-600">
-                    Allow team members to react to cards with emojis.
-                  </p>
-                </div>
-                <div className="flex-shrink-0 ml-4">
-                  <button
-                    type="button"
-                    onClick={() => setReactionsEnabled(!reactionsEnabled)}
-                    aria-label={`${reactionsEnabled ? 'Disable' : 'Enable'} reactions`}
-                    className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
-                      reactionsEnabled ? 'bg-kone-blue' : 'bg-gray-300'
-                    }`}
-                  >
-                    <div className={`w-4 h-4 bg-white rounded-full transition-transform ${
-                      reactionsEnabled ? 'translate-x-6' : 'translate-x-0'
-                    }`}></div>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Comments */}
-            <div className="card border-2 border-kone-blue bg-white">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900 mb-1">Comments</h4>
-                  <p className="text-sm text-gray-600">
-                    Allow team members to comment on cards.
-                  </p>
-                </div>
-                <div className="flex-shrink-0 ml-4">
-                  <button
-                    type="button"
-                    onClick={() => setCommentsEnabled(!commentsEnabled)}
-                    aria-label={`${commentsEnabled ? 'Disable' : 'Enable'} comments`}
-                    className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
-                      commentsEnabled ? 'bg-kone-blue' : 'bg-gray-300'
-                    }`}
-                  >
-                    <div className={`w-4 h-4 bg-white rounded-full transition-transform ${
-                      commentsEnabled ? 'translate-x-6' : 'translate-x-0'
-                    }`}></div>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Comment Reactions */}
-            <div className="card border-2 border-kone-blue bg-white">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900 mb-1">Comment Reactions</h4>
-                  <p className="text-sm text-gray-600">
-                    Allow team members to react to comments with emojis.
-                  </p>
-                </div>
-                <div className="flex-shrink-0 ml-4">
-                  <button
-                    type="button"
-                    onClick={() => setCommentReactionsEnabled(!commentReactionsEnabled)}
-                    aria-label={`${commentReactionsEnabled ? 'Disable' : 'Enable'} comment reactions`}
-                    className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
-                      commentReactionsEnabled ? 'bg-kone-blue' : 'bg-gray-300'
-                    }`}
-                  >
-                    <div className={`w-4 h-4 bg-white rounded-full transition-transform ${
-                      commentReactionsEnabled ? 'translate-x-6' : 'translate-x-0'
-                    }`}></div>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Action Buttons */}
-        <div className="flex gap-4 pt-4">
+            {/* Action Buttons - At the end of content */}
+            <div className="flex gap-4 pt-4">
           {activeTab !== 'options' ? (
             <button
               type="button"
@@ -469,6 +214,8 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
               Start Retrospective
             </button>
           )}
+            </div>
+          </div>
         </div>
       </form>
     </div>
