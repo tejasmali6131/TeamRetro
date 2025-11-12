@@ -219,6 +219,7 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
                   <button
                     type="button"
                     onClick={() => setGroupEnabled(!groupEnabled)}
+                    aria-label={`${groupEnabled ? 'Disable' : 'Enable'} group phase`}
                     className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
                       groupEnabled ? 'bg-kone-blue' : 'bg-gray-300'
                     }`}
@@ -241,6 +242,7 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
                     step="1"
                     value={groupDuration}
                     onChange={(e) => setGroupDuration(parseInt(e.target.value))}
+                    aria-label="Group phase duration in minutes"
                     className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-kone-blue"
                   />
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
@@ -266,6 +268,7 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
                   <button
                     type="button"
                     onClick={() => setVoteEnabled(!voteEnabled)}
+                    aria-label={`${voteEnabled ? 'Disable' : 'Enable'} vote phase`}
                     className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
                       voteEnabled ? 'bg-kone-blue' : 'bg-gray-300'
                     }`}
@@ -288,6 +291,7 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
                     step="1"
                     value={voteDuration}
                     onChange={(e) => setVoteDuration(parseInt(e.target.value))}
+                    aria-label="Vote phase duration in minutes"
                     className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-kone-blue"
                   />
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
@@ -313,6 +317,7 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
                   <button
                     type="button"
                     onClick={() => setDiscussEnabled(!discussEnabled)}
+                    aria-label={`${discussEnabled ? 'Disable' : 'Enable'} discuss phase`}
                     className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
                       discussEnabled ? 'bg-kone-blue' : 'bg-gray-300'
                     }`}
@@ -335,6 +340,7 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
                     step="1"
                     value={discussDuration}
                     onChange={(e) => setDiscussDuration(parseInt(e.target.value))}
+                    aria-label="Discuss phase duration in minutes"
                     className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-kone-blue"
                   />
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
@@ -360,6 +366,7 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
                   <button
                     type="button"
                     onClick={() => setReviewEnabled(!reviewEnabled)}
+                    aria-label={`${reviewEnabled ? 'Disable' : 'Enable'} review phase`}
                     className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
                       reviewEnabled ? 'bg-kone-blue' : 'bg-gray-300'
                     }`}
@@ -382,6 +389,7 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
                     step="1"
                     value={reviewDuration}
                     onChange={(e) => setReviewDuration(parseInt(e.target.value))}
+                    aria-label="Review phase duration in minutes"
                     className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-kone-blue"
                   />
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
@@ -431,6 +439,7 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
                   <button
                     type="button"
                     onClick={() => setReactionsEnabled(!reactionsEnabled)}
+                    aria-label={`${reactionsEnabled ? 'Disable' : 'Enable'} reactions`}
                     className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
                       reactionsEnabled ? 'bg-kone-blue' : 'bg-gray-300'
                     }`}
@@ -456,6 +465,7 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
                   <button
                     type="button"
                     onClick={() => setCommentsEnabled(!commentsEnabled)}
+                    aria-label={`${commentsEnabled ? 'Disable' : 'Enable'} comments`}
                     className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
                       commentsEnabled ? 'bg-kone-blue' : 'bg-gray-300'
                     }`}
@@ -481,6 +491,7 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
                   <button
                     type="button"
                     onClick={() => setCommentReactionsEnabled(!commentReactionsEnabled)}
+                    aria-label={`${commentReactionsEnabled ? 'Disable' : 'Enable'} comment reactions`}
                     className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
                       commentReactionsEnabled ? 'bg-kone-blue' : 'bg-gray-300'
                     }`}
