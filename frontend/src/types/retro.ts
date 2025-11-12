@@ -14,6 +14,13 @@ export interface TemplateColumn {
   placeholder: string;
 }
 
+export interface RetroStage {
+  id: string;
+  name: string;
+  duration: number;
+  enabled: boolean;
+}
+
 export interface Retro {
   id: string;
   sessionName: string;
@@ -24,6 +31,7 @@ export interface Retro {
   votingLimit: number;
   timerDuration: number | null;
   status: 'draft' | 'active' | 'voting' | 'completed';
+  stages?: RetroStage[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -42,6 +50,10 @@ export interface CreateRetroData {
   isAnonymous: boolean;
   votingLimit?: number;
   timerDuration?: number;
+  stages?: RetroStage[];
+  reactionsEnabled?: boolean;
+  commentsEnabled?: boolean;
+  commentReactionsEnabled?: boolean;
 }
 
 export interface RetroSettings {

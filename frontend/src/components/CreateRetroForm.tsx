@@ -22,12 +22,6 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
   const [discussEnabled, setDiscussEnabled] = useState(true);
   const [reviewEnabled, setReviewEnabled] = useState(true);
   
-  // Duration states
-  const [groupDuration, setGroupDuration] = useState(5);
-  const [voteDuration, setVoteDuration] = useState(5);
-  const [discussDuration, setDiscussDuration] = useState(10 );
-  const [reviewDuration, setReviewDuration] = useState(5);
-  
   // Options states (all enabled by default)
   const [reactionsEnabled, setReactionsEnabled] = useState(true);
   const [commentsEnabled, setCommentsEnabled] = useState(true);
@@ -56,7 +50,25 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
 
   const onSubmit = async (data: CreateRetroData) => {
     try {
-      const response = await api.post('/retros', data);
+      // Build stages configuration based on user selections
+      const stages = [
+        { id: 'brainstorm', name: 'Brainstorm', duration: 0, enabled: true }, // Always enabled
+        { id: 'group', name: 'Group', duration: 0, enabled: groupEnabled },
+        { id: 'vote', name: 'Vote', duration: 0, enabled: voteEnabled },
+        { id: 'discuss', name: 'Discuss', duration: 0, enabled: discussEnabled },
+        { id: 'review', name: 'Review', duration: 0, enabled: reviewEnabled },
+        { id: 'report', name: 'Report', duration: 0, enabled: true }, // Always enabled
+      ];
+
+      const retroData = {
+        ...data,
+        stages,
+        reactionsEnabled,
+        commentsEnabled,
+        commentReactionsEnabled,
+      };
+
+      const response = await api.post('/retros', retroData);
       toast.success('Retrospective created successfully!');
       onSuccess(response.data);
     } catch (error: any) {
@@ -208,7 +220,7 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
             <div className={`card border-2 transition-colors ${
               groupEnabled ? 'bg-white border-kone-blue' : 'bg-gray-50 border-gray-200'
             }`}>
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between">
                 <div className="flex-1">
                   <h4 className="font-semibold text-gray-900 mb-1">Group</h4>
                   <p className="text-sm text-gray-600">
@@ -230,34 +242,13 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
                   </button>
                 </div>
               </div>
-              {groupEnabled && (
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Duration: {groupDuration} minutes
-                  </label>
-                  <input
-                    type="range"
-                    min="2"
-                    max="15"
-                    step="1"
-                    value={groupDuration}
-                    onChange={(e) => setGroupDuration(parseInt(e.target.value))}
-                    aria-label="Group phase duration in minutes"
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-kone-blue"
-                  />
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
-                    <span>2 min</span>
-                    <span>15 min</span>
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Vote */}
             <div className={`card border-2 transition-colors ${
               voteEnabled ? 'bg-white border-kone-blue' : 'bg-gray-50 border-gray-200'
             }`}>
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between">
                 <div className="flex-1">
                   <h4 className="font-semibold text-gray-900 mb-1">Vote</h4>
                   <p className="text-sm text-gray-600">
@@ -279,34 +270,13 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
                   </button>
                 </div>
               </div>
-              {voteEnabled && (
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Duration: {voteDuration} minutes
-                  </label>
-                  <input
-                    type="range"
-                    min="2"
-                    max="15"
-                    step="1"
-                    value={voteDuration}
-                    onChange={(e) => setVoteDuration(parseInt(e.target.value))}
-                    aria-label="Vote phase duration in minutes"
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-kone-blue"
-                  />
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
-                    <span>2 min</span>
-                    <span>15 min</span>
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Discuss */}
             <div className={`card border-2 transition-colors ${
               discussEnabled ? 'bg-white border-kone-blue' : 'bg-gray-50 border-gray-200'
             }`}>
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between">
                 <div className="flex-1">
                   <h4 className="font-semibold text-gray-900 mb-1">Discuss</h4>
                   <p className="text-sm text-gray-600">
@@ -328,34 +298,13 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
                   </button>
                 </div>
               </div>
-              {discussEnabled && (
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Duration: {discussDuration} minutes
-                  </label>
-                  <input
-                    type="range"
-                    min="2"
-                    max="30"
-                    step="1"
-                    value={discussDuration}
-                    onChange={(e) => setDiscussDuration(parseInt(e.target.value))}
-                    aria-label="Discuss phase duration in minutes"
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-kone-blue"
-                  />
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
-                    <span>2 min</span>
-                    <span>30 min</span>
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Review */}
             <div className={`card border-2 transition-colors ${
               reviewEnabled ? 'bg-white border-kone-blue' : 'bg-gray-50 border-gray-200'
             }`}>
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between">
                 <div className="flex-1">
                   <h4 className="font-semibold text-gray-900 mb-1">Review</h4>
                   <p className="text-sm text-gray-600">
@@ -377,27 +326,6 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
                   </button>
                 </div>
               </div>
-              {reviewEnabled && (
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Duration: {reviewDuration} minutes
-                  </label>
-                  <input
-                    type="range"
-                    min="2"
-                    max="15"
-                    step="1"
-                    value={reviewDuration}
-                    onChange={(e) => setReviewDuration(parseInt(e.target.value))}
-                    aria-label="Review phase duration in minutes"
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-kone-blue"
-                  />
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
-                    <span>2 min</span>
-                    <span>15 min</span>
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Report - Always enabled */}
