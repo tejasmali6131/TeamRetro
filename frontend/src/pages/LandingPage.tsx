@@ -9,18 +9,18 @@ export default function LandingPage() {
   const [showCreateForm, setShowCreateForm] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       <Header />
 
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-20">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
+          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 dark:text-gray-100 mb-6">
             Better Retrospectives,
             <br />
-            <span className="text-kone-blue">Better Teams</span>
+            <span className="text-kone-blue dark:text-kone-lightBlue">Better Teams</span>
           </h1>
-          <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto">
+          <p className="text-xl text-gray-600 dark:text-gray-300 mb-12 max-w-2xl mx-auto">
             Streamline your agile retrospectives with KONE's internal tool. Collaborate,
             reflect, and improve as a team with powerful features designed for distributed teams.
           </p>
@@ -63,7 +63,7 @@ export default function LandingPage() {
       {/* Quick Start Section */}
       <section className="container mx-auto px-4 py-16">
         <div className="card max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-8 text-center">
             Quick Start Guide
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
@@ -88,15 +88,15 @@ export default function LandingPage() {
 
       {/* Create Retro Modal */}
       {showCreateForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+        <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
             {/* Sticky Header */}
-            <div className="p-6 border-b border-gray-200 bg-white sticky top-0 z-10">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 sticky top-0 z-10">
               <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-gray-900">Create New Retrospective</h2>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Create New Retrospective</h2>
                 <button
                   onClick={() => setShowCreateForm(false)}
-                  className="text-gray-500 hover:text-gray-700"
+                  className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                 >
                   ✕
                 </button>
@@ -117,8 +117,8 @@ export default function LandingPage() {
       )}
 
       {/* Footer */}
-      <footer className="container mx-auto px-4 py-8 mt-16 border-t">
-        <p className="text-center text-gray-600">
+      <footer className="container mx-auto px-4 py-8 mt-16 border-t dark:border-gray-700">
+        <p className="text-center text-gray-600 dark:text-gray-400">
           © 2025 KONE Corporation. Internal Tool for Agile Teams.
         </p>
       </footer>
@@ -128,12 +128,12 @@ export default function LandingPage() {
 
 function FeatureCard({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
   return (
-    <div className="card text-center hover:shadow-lg transition-shadow">
-      <div className="inline-flex items-center justify-center w-16 h-16 bg-kone-blue bg-opacity-10 rounded-full mb-4 text-kone-blue">
+    <div className="card text-center hover:shadow-lg transition-shadow dark:hover:shadow-gray-900/70">
+      <div className="inline-flex items-center justify-center w-16 h-16 bg-kone-blue bg-opacity-10 dark:bg-opacity-20 rounded-full mb-4 text-kone-blue dark:text-kone-lightBlue">
         {icon}
       </div>
-      <h3 className="text-xl font-semibold text-gray-900 mb-2">{title}</h3>
-      <p className="text-gray-600">{description}</p>
+      <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">{title}</h3>
+      <p className="text-gray-600 dark:text-gray-300">{description}</p>
     </div>
   );
 }
@@ -144,8 +144,8 @@ function StepCard({ number, title, description }: { number: string; title: strin
       <div className="inline-flex items-center justify-center w-12 h-12 bg-kone-blue text-white rounded-full text-xl font-bold mb-4">
         {number}
       </div>
-      <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
-      <p className="text-gray-600">{description}</p>
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">{title}</h3>
+      <p className="text-gray-600 dark:text-gray-300">{description}</p>
     </div>
   );
 }

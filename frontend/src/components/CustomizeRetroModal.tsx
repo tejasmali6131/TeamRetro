@@ -28,46 +28,46 @@ export default function CustomizeRetroModal({ onClose, onSave }: CustomizeRetroM
   const [commentReactionsEnabled, setCommentReactionsEnabled] = useState(true);
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+    <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 flex items-center justify-center p-4 z-50">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         {/* Sticky Header */}
-        <div className="p-4 border-b border-gray-200 bg-white sticky top-0 z-10">
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 sticky top-0 z-10">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold text-gray-900">Customize Retrospective</h2>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Customize Retrospective</h2>
             <button
               onClick={onClose}
-              className="text-gray-500 hover:text-gray-700 text-2xl"
+              className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-2xl"
             >
               ✕
             </button>
           </div>
           
           {/* Tabs */}
-          <div className="flex gap-2 border-b border-gray-200">
+          <div className="flex gap-2 border-b border-gray-200 dark:border-gray-700">
             <button
               onClick={() => setActiveTab('process')}
               className={`px-6 py-3 font-medium transition-colors relative ${
                 activeTab === 'process'
-                  ? 'text-kone-blue'
-                  : 'text-gray-600 hover:text-gray-900'
+                  ? 'text-kone-blue dark:text-kone-lightBlue'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
               }`}
             >
               Process
               {activeTab === 'process' && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-kone-blue"></div>
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-kone-blue dark:bg-kone-lightBlue"></div>
               )}
             </button>
             <button
               onClick={() => setActiveTab('options')}
               className={`px-6 py-3 font-medium transition-colors relative ${
                 activeTab === 'options'
-                  ? 'text-kone-blue'
-                  : 'text-gray-600 hover:text-gray-900'
+                  ? 'text-kone-blue dark:text-kone-lightBlue'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
               }`}
             >
               Options
               {activeTab === 'options' && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-kone-blue"></div>
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-kone-blue dark:bg-kone-lightBlue"></div>
               )}
             </button>
           </div>
@@ -78,19 +78,19 @@ export default function CustomizeRetroModal({ onClose, onSave }: CustomizeRetroM
           {activeTab === 'process' && (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Process Settings</h3>
-                <p className="text-gray-600 mb-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Process Settings</h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-6">
                   Configure how your retrospective session will flow and what phases it will include.
                 </p>
                 
                 {/* Process Steps */}
                 <div className="space-y-4">
                   {/* Brainstorm - Always enabled */}
-                  <div className="card bg-white border-2 border-kone-blue">
+                  <div className="card bg-white dark:bg-gray-800 border-2 border-kone-blue dark:border-kone-lightBlue">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900 mb-1">Brainstorm</h4>
-                        <p className="text-sm text-gray-600">
+                        <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">Brainstorm</h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
                           Team members share their thoughts and ideas. This phase is required.
                         </p>
                       </div>
@@ -104,12 +104,12 @@ export default function CustomizeRetroModal({ onClose, onSave }: CustomizeRetroM
 
                   {/* Group - Optional with toggle and slider */}
                   <div className={`card border-2 transition-colors ${
-                    groupEnabled ? 'bg-white border-kone-blue' : 'bg-gray-50 border-gray-200'
+                    groupEnabled ? 'bg-white dark:bg-gray-800 border-kone-blue dark:border-kone-lightBlue' : 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600'
                   }`}>
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900 mb-1">Group</h4>
-                        <p className="text-sm text-gray-600">
+                        <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">Group</h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
                           Organize similar ideas together to identify common themes.
                         </p>
                       </div>
@@ -117,7 +117,7 @@ export default function CustomizeRetroModal({ onClose, onSave }: CustomizeRetroM
                         <button
                           onClick={() => setGroupEnabled(!groupEnabled)}
                           className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
-                            groupEnabled ? 'bg-kone-blue' : 'bg-gray-300'
+                            groupEnabled ? 'bg-kone-blue' : 'bg-gray-300 dark:bg-gray-600'
                           }`}
                         >
                           <div className={`w-4 h-4 bg-white rounded-full transition-transform ${
@@ -128,8 +128,8 @@ export default function CustomizeRetroModal({ onClose, onSave }: CustomizeRetroM
                     </div>
                     
                     {groupEnabled && (
-                      <div className="mt-4 pt-4 border-t border-gray-200">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                           Duration: {groupDuration} minutes
                         </label>
                         <input
@@ -139,9 +139,9 @@ export default function CustomizeRetroModal({ onClose, onSave }: CustomizeRetroM
                           step="5"
                           value={groupDuration}
                           onChange={(e) => setGroupDuration(parseInt(e.target.value))}
-                          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-kone-blue"
+                          className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-kone-blue"
                         />
-                        <div className="flex justify-between text-xs text-gray-500 mt-1">
+                        <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
                           <span>5 min</span>
                           <span>30 min</span>
                         </div>
@@ -151,12 +151,12 @@ export default function CustomizeRetroModal({ onClose, onSave }: CustomizeRetroM
 
                   {/* Vote - Optional with toggle and slider */}
                   <div className={`card border-2 transition-colors ${
-                    voteEnabled ? 'bg-white border-kone-blue' : 'bg-gray-50 border-gray-200'
+                    voteEnabled ? 'bg-white dark:bg-gray-800 border-kone-blue dark:border-kone-lightBlue' : 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600'
                   }`}>
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900 mb-1">Vote</h4>
-                        <p className="text-sm text-gray-600">
+                        <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">Vote</h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
                           Team members vote on the most important topics to discuss.
                         </p>
                       </div>
@@ -164,7 +164,7 @@ export default function CustomizeRetroModal({ onClose, onSave }: CustomizeRetroM
                         <button
                           onClick={() => setVoteEnabled(!voteEnabled)}
                           className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
-                            voteEnabled ? 'bg-kone-blue' : 'bg-gray-300'
+                            voteEnabled ? 'bg-kone-blue' : 'bg-gray-300 dark:bg-gray-600'
                           }`}
                         >
                           <div className={`w-4 h-4 bg-white rounded-full transition-transform ${
@@ -175,8 +175,8 @@ export default function CustomizeRetroModal({ onClose, onSave }: CustomizeRetroM
                     </div>
                     
                     {voteEnabled && (
-                      <div className="mt-4 pt-4 border-t border-gray-200">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                           Duration: {voteDuration} minutes
                         </label>
                         <input
@@ -186,9 +186,9 @@ export default function CustomizeRetroModal({ onClose, onSave }: CustomizeRetroM
                           step="1"
                           value={voteDuration}
                           onChange={(e) => setVoteDuration(parseInt(e.target.value))}
-                          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-kone-blue"
+                          className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-kone-blue"
                         />
-                        <div className="flex justify-between text-xs text-gray-500 mt-1">
+                        <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
                           <span>3 min</span>
                           <span>15 min</span>
                         </div>
@@ -198,12 +198,12 @@ export default function CustomizeRetroModal({ onClose, onSave }: CustomizeRetroM
 
                   {/* Discuss - Optional with toggle and slider */}
                   <div className={`card border-2 transition-colors ${
-                    discussEnabled ? 'bg-white border-kone-blue' : 'bg-gray-50 border-gray-200'
+                    discussEnabled ? 'bg-white dark:bg-gray-800 border-kone-blue dark:border-kone-lightBlue' : 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600'
                   }`}>
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900 mb-1">Discuss</h4>
-                        <p className="text-sm text-gray-600">
+                        <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">Discuss</h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
                           Team discusses the most voted topics in detail.
                         </p>
                       </div>
@@ -211,7 +211,7 @@ export default function CustomizeRetroModal({ onClose, onSave }: CustomizeRetroM
                         <button
                           onClick={() => setDiscussEnabled(!discussEnabled)}
                           className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
-                            discussEnabled ? 'bg-kone-blue' : 'bg-gray-300'
+                            discussEnabled ? 'bg-kone-blue' : 'bg-gray-300 dark:bg-gray-600'
                           }`}
                         >
                           <div className={`w-4 h-4 bg-white rounded-full transition-transform ${
@@ -222,8 +222,8 @@ export default function CustomizeRetroModal({ onClose, onSave }: CustomizeRetroM
                     </div>
                     
                     {discussEnabled && (
-                      <div className="mt-4 pt-4 border-t border-gray-200">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                           Duration: {discussDuration} minutes
                         </label>
                         <input
@@ -233,9 +233,9 @@ export default function CustomizeRetroModal({ onClose, onSave }: CustomizeRetroM
                           step="5"
                           value={discussDuration}
                           onChange={(e) => setDiscussDuration(parseInt(e.target.value))}
-                          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-kone-blue"
+                          className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-kone-blue"
                         />
-                        <div className="flex justify-between text-xs text-gray-500 mt-1">
+                        <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
                           <span>10 min</span>
                           <span>30 min</span>
                         </div>
@@ -245,12 +245,12 @@ export default function CustomizeRetroModal({ onClose, onSave }: CustomizeRetroM
 
                   {/* Review - Optional with toggle and slider */}
                   <div className={`card border-2 transition-colors ${
-                    reviewEnabled ? 'bg-white border-kone-blue' : 'bg-gray-50 border-gray-200'
+                    reviewEnabled ? 'bg-white dark:bg-gray-800 border-kone-blue dark:border-kone-lightBlue' : 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600'
                   }`}>
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900 mb-1">Review</h4>
-                        <p className="text-sm text-gray-600">
+                        <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">Review</h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
                           Review action items and key takeaways from the session.
                         </p>
                       </div>
@@ -258,7 +258,7 @@ export default function CustomizeRetroModal({ onClose, onSave }: CustomizeRetroM
                         <button
                           onClick={() => setReviewEnabled(!reviewEnabled)}
                           className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
-                            reviewEnabled ? 'bg-kone-blue' : 'bg-gray-300'
+                            reviewEnabled ? 'bg-kone-blue' : 'bg-gray-300 dark:bg-gray-600'
                           }`}
                         >
                           <div className={`w-4 h-4 bg-white rounded-full transition-transform ${
@@ -269,8 +269,8 @@ export default function CustomizeRetroModal({ onClose, onSave }: CustomizeRetroM
                     </div>
                     
                     {reviewEnabled && (
-                      <div className="mt-4 pt-4 border-t border-gray-200">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                           Duration: {reviewDuration} minutes
                         </label>
                         <input
@@ -280,9 +280,9 @@ export default function CustomizeRetroModal({ onClose, onSave }: CustomizeRetroM
                           step="5"
                           value={reviewDuration}
                           onChange={(e) => setReviewDuration(parseInt(e.target.value))}
-                          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-kone-blue"
+                          className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-kone-blue"
                         />
-                        <div className="flex justify-between text-xs text-gray-500 mt-1">
+                        <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
                           <span>5 min</span>
                           <span>20 min</span>
                         </div>
@@ -291,11 +291,11 @@ export default function CustomizeRetroModal({ onClose, onSave }: CustomizeRetroM
                   </div>
 
                   {/* Report - Always enabled */}
-                  <div className="card bg-white border-2 border-kone-blue">
+                  <div className="card bg-white dark:bg-gray-800 border-2 border-kone-blue dark:border-kone-lightBlue">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900 mb-1">Report</h4>
-                        <p className="text-sm text-gray-600">
+                        <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">Report</h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
                           Generate a summary report of the retrospective. This phase is required.
                         </p>
                       </div>
@@ -314,19 +314,19 @@ export default function CustomizeRetroModal({ onClose, onSave }: CustomizeRetroM
           {activeTab === 'options' && (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Options Settings</h3>
-                <p className="text-gray-600 mb-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Options Settings</h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-6">
                   Customize additional settings for your retrospective session.
                 </p>
                 
                 {/* Options toggles */}
                 <div className="space-y-4">
                   {/* Reactions */}
-                  <div className="card border-2 border-kone-blue bg-white">
+                  <div className="card border-2 border-kone-blue dark:border-kone-lightBlue bg-white dark:bg-gray-800">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900 mb-1">Reactions</h4>
-                        <p className="text-sm text-gray-600">
+                        <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">Reactions</h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
                           Allow team members to react to cards with emojis.
                         </p>
                       </div>
@@ -334,7 +334,7 @@ export default function CustomizeRetroModal({ onClose, onSave }: CustomizeRetroM
                         <button
                           onClick={() => setReactionsEnabled(!reactionsEnabled)}
                           className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
-                            reactionsEnabled ? 'bg-kone-blue' : 'bg-gray-300'
+                            reactionsEnabled ? 'bg-kone-blue' : 'bg-gray-300 dark:bg-gray-600'
                           }`}
                         >
                           <div className={`w-4 h-4 bg-white rounded-full transition-transform ${
@@ -346,11 +346,11 @@ export default function CustomizeRetroModal({ onClose, onSave }: CustomizeRetroM
                   </div>
 
                   {/* Comments */}
-                  <div className="card border-2 border-kone-blue bg-white">
+                  <div className="card border-2 border-kone-blue dark:border-kone-lightBlue bg-white dark:bg-gray-800">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900 mb-1">Comments</h4>
-                        <p className="text-sm text-gray-600">
+                        <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">Comments</h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
                           Allow team members to comment on cards.
                         </p>
                       </div>
@@ -358,7 +358,7 @@ export default function CustomizeRetroModal({ onClose, onSave }: CustomizeRetroM
                         <button
                           onClick={() => setCommentsEnabled(!commentsEnabled)}
                           className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
-                            commentsEnabled ? 'bg-kone-blue' : 'bg-gray-300'
+                            commentsEnabled ? 'bg-kone-blue' : 'bg-gray-300 dark:bg-gray-600'
                           }`}
                         >
                           <div className={`w-4 h-4 bg-white rounded-full transition-transform ${
@@ -370,11 +370,11 @@ export default function CustomizeRetroModal({ onClose, onSave }: CustomizeRetroM
                   </div>
 
                   {/* Comment Reactions */}
-                  <div className="card border-2 border-kone-blue bg-white">
+                  <div className="card border-2 border-kone-blue dark:border-kone-lightBlue bg-white dark:bg-gray-800">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900 mb-1">Comment Reactions</h4>
-                        <p className="text-sm text-gray-600">
+                        <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">Comment Reactions</h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
                           Allow team members to react to comments with emojis.
                         </p>
                       </div>
@@ -382,7 +382,7 @@ export default function CustomizeRetroModal({ onClose, onSave }: CustomizeRetroM
                         <button
                           onClick={() => setCommentReactionsEnabled(!commentReactionsEnabled)}
                           className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
-                            commentReactionsEnabled ? 'bg-kone-blue' : 'bg-gray-300'
+                            commentReactionsEnabled ? 'bg-kone-blue' : 'bg-gray-300 dark:bg-gray-600'
                           }`}
                         >
                           <div className={`w-4 h-4 bg-white rounded-full transition-transform ${
@@ -399,7 +399,7 @@ export default function CustomizeRetroModal({ onClose, onSave }: CustomizeRetroM
         </div>
 
         {/* Footer with Action Buttons */}
-        <div className="p-6 border-t border-gray-200 bg-white sticky bottom-0">
+        <div className="p-6 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 sticky bottom-0">
           <div className="flex gap-4">
             <button
               onClick={onClose}

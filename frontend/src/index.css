@@ -4,18 +4,25 @@
 
 @layer base {
   * {
-    @apply border-gray-200;
+    @apply border-gray-200 dark:border-gray-700;
   }
   
   body {
-    @apply bg-gray-50 text-gray-900;
+    @apply bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
   }
 
   /* Custom Scrollbar Styles */
   * {
     scrollbar-width: thin;
+  }
+
+  .light * {
     scrollbar-color: #cbd5e1 #f1f5f9;
+  }
+
+  .dark * {
+    scrollbar-color: #4b5563 #1f2937;
   }
 
   *::-webkit-scrollbar {
@@ -23,19 +30,34 @@
     height: 8px;
   }
 
-  *::-webkit-scrollbar-track {
+  .light *::-webkit-scrollbar-track {
     background: #f1f5f9;
     border-radius: 10px;
   }
 
-  *::-webkit-scrollbar-thumb {
+  .dark *::-webkit-scrollbar-track {
+    background: #1f2937;
+    border-radius: 10px;
+  }
+
+  .light *::-webkit-scrollbar-thumb {
     background: #cbd5e1;
     border-radius: 10px;
     border: 2px solid #f1f5f9;
   }
 
-  *::-webkit-scrollbar-thumb:hover {
+  .dark *::-webkit-scrollbar-thumb {
+    background: #4b5563;
+    border-radius: 10px;
+    border: 2px solid #1f2937;
+  }
+
+  .light *::-webkit-scrollbar-thumb:hover {
     background: #94a3b8;
+  }
+
+  .dark *::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
   }
 }
 
@@ -45,14 +67,14 @@
   }
   
   .btn-secondary {
-    @apply px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors font-medium;
+    @apply px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors font-medium dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600;
   }
   
   .input-field {
-    @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-kone-blue focus:border-transparent;
+    @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-kone-blue focus:border-transparent dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400;
   }
   
   .card {
-    @apply bg-white rounded-lg shadow-md p-6;
+    @apply bg-white rounded-lg shadow-md p-6 dark:bg-gray-800 dark:shadow-gray-900/50;
   }
 }

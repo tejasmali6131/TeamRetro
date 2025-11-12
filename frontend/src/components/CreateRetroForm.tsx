@@ -91,19 +91,19 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
   return (
     <div className="space-y-6">
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-gray-200">
+      <div className="flex gap-2 border-b border-gray-200 dark:border-gray-700">
         <button
           type="button"
           onClick={() => setActiveTab('basic')}
           className={`px-6 py-3 font-medium transition-colors relative ${
             activeTab === 'basic'
-              ? 'text-kone-blue'
-              : 'text-gray-600 hover:text-gray-900'
+              ? 'text-kone-blue dark:text-kone-lightBlue'
+              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
           }`}
         >
           Basic Info
           {activeTab === 'basic' && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-kone-blue"></div>
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-kone-blue dark:bg-kone-lightBlue"></div>
           )}
         </button>
         <button
@@ -111,13 +111,13 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
           onClick={() => setActiveTab('process')}
           className={`px-6 py-3 font-medium transition-colors relative ${
             activeTab === 'process'
-              ? 'text-kone-blue'
-              : 'text-gray-600 hover:text-gray-900'
+              ? 'text-kone-blue dark:text-kone-lightBlue'
+              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
           }`}
         >
           Process
           {activeTab === 'process' && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-kone-blue"></div>
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-kone-blue dark:bg-kone-lightBlue"></div>
           )}
         </button>
         <button
@@ -125,13 +125,13 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
           onClick={() => setActiveTab('options')}
           className={`px-6 py-3 font-medium transition-colors relative ${
             activeTab === 'options'
-              ? 'text-kone-blue'
-              : 'text-gray-600 hover:text-gray-900'
+              ? 'text-kone-blue dark:text-kone-lightBlue'
+              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
           }`}
         >
           Options
           {activeTab === 'options' && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-kone-blue"></div>
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-kone-blue dark:bg-kone-lightBlue"></div>
           )}
         </button>
       </div>
@@ -142,7 +142,7 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
           <div className="space-y-6">
             {/* Session Name */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Session Name *
               </label>
               <input
@@ -152,13 +152,13 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
                 placeholder="e.g., Sprint 42 Retrospective"
               />
               {errors.sessionName && (
-                <p className="text-red-500 text-sm mt-1">{errors.sessionName.message}</p>
+                <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.sessionName.message}</p>
               )}
             </div>
 
             {/* Context */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Context
               </label>
               <textarea
@@ -171,7 +171,7 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
 
             {/* Template Selection */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Template *
               </label>
               <select
@@ -186,7 +186,7 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
                 ))}
               </select>
               {errors.templateId && (
-                <p className="text-red-500 text-sm mt-1">{errors.templateId.message}</p>
+                <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.templateId.message}</p>
               )}
             </div>
           </div>
@@ -195,16 +195,16 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
         {/* Process Tab */}
         {activeTab === 'process' && (
           <div className="space-y-4">
-            <p className="text-gray-600 text-sm mb-4">
+            <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
               Configure how your retrospective session will flow and what phases it will include.
             </p>
 
             {/* Brainstorm - Always enabled */}
-            <div className="card bg-white border-2 border-kone-blue">
+            <div className="card bg-white dark:bg-gray-800 border-2 border-kone-blue dark:border-kone-lightBlue">
               <div className="flex items-center justify-between">
                 <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900 mb-1">Brainstorm</h4>
-                  <p className="text-sm text-gray-600">
+                  <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">Brainstorm</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     Team members share their thoughts and ideas. This phase is required.
                   </p>
                 </div>
@@ -218,12 +218,12 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
 
             {/* Group */}
             <div className={`card border-2 transition-colors ${
-              groupEnabled ? 'bg-white border-kone-blue' : 'bg-gray-50 border-gray-200'
+              groupEnabled ? 'bg-white dark:bg-gray-800 border-kone-blue dark:border-kone-lightBlue' : 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600'
             }`}>
               <div className="flex items-center justify-between">
                 <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900 mb-1">Group</h4>
-                  <p className="text-sm text-gray-600">
+                  <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">Group</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     Organize similar ideas together to identify common themes.
                   </p>
                 </div>
@@ -232,7 +232,7 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
                     type="button"
                     onClick={() => setGroupEnabled(!groupEnabled)}
                     className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
-                      groupEnabled ? 'bg-kone-blue' : 'bg-gray-300'
+                      groupEnabled ? 'bg-kone-blue' : 'bg-gray-300 dark:bg-gray-600'
                     }`}
                   >
                     <div className={`w-4 h-4 bg-white rounded-full transition-transform ${
@@ -245,12 +245,12 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
 
             {/* Vote */}
             <div className={`card border-2 transition-colors ${
-              voteEnabled ? 'bg-white border-kone-blue' : 'bg-gray-50 border-gray-200'
+              voteEnabled ? 'bg-white dark:bg-gray-800 border-kone-blue dark:border-kone-lightBlue' : 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600'
             }`}>
               <div className="flex items-center justify-between">
                 <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900 mb-1">Vote</h4>
-                  <p className="text-sm text-gray-600">
+                  <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">Vote</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     Team members vote on the most important topics to discuss.
                   </p>
                 </div>
@@ -259,7 +259,7 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
                     type="button"
                     onClick={() => setVoteEnabled(!voteEnabled)}
                     className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
-                      voteEnabled ? 'bg-kone-blue' : 'bg-gray-300'
+                      voteEnabled ? 'bg-kone-blue' : 'bg-gray-300 dark:bg-gray-600'
                     }`}
                   >
                     <div className={`w-4 h-4 bg-white rounded-full transition-transform ${
@@ -272,12 +272,12 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
 
             {/* Discuss */}
             <div className={`card border-2 transition-colors ${
-              discussEnabled ? 'bg-white border-kone-blue' : 'bg-gray-50 border-gray-200'
+              discussEnabled ? 'bg-white dark:bg-gray-800 border-kone-blue dark:border-kone-lightBlue' : 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600'
             }`}>
               <div className="flex items-center justify-between">
                 <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900 mb-1">Discuss</h4>
-                  <p className="text-sm text-gray-600">
+                  <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">Discuss</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     Team discusses the most voted topics in detail.
                   </p>
                 </div>
@@ -286,7 +286,7 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
                     type="button"
                     onClick={() => setDiscussEnabled(!discussEnabled)}
                     className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
-                      discussEnabled ? 'bg-kone-blue' : 'bg-gray-300'
+                      discussEnabled ? 'bg-kone-blue' : 'bg-gray-300 dark:bg-gray-600'
                     }`}
                   >
                     <div className={`w-4 h-4 bg-white rounded-full transition-transform ${
@@ -299,12 +299,12 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
 
             {/* Review */}
             <div className={`card border-2 transition-colors ${
-              reviewEnabled ? 'bg-white border-kone-blue' : 'bg-gray-50 border-gray-200'
+              reviewEnabled ? 'bg-white dark:bg-gray-800 border-kone-blue dark:border-kone-lightBlue' : 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600'
             }`}>
               <div className="flex items-center justify-between">
                 <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900 mb-1">Review</h4>
-                  <p className="text-sm text-gray-600">
+                  <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">Review</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     Review action items and key takeaways from the session.
                   </p>
                 </div>
@@ -313,7 +313,7 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
                     type="button"
                     onClick={() => setReviewEnabled(!reviewEnabled)}
                     className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
-                      reviewEnabled ? 'bg-kone-blue' : 'bg-gray-300'
+                      reviewEnabled ? 'bg-kone-blue' : 'bg-gray-300 dark:bg-gray-600'
                     }`}
                   >
                     <div className={`w-4 h-4 bg-white rounded-full transition-transform ${
@@ -325,11 +325,11 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
             </div>
 
             {/* Report - Always enabled */}
-            <div className="card bg-white border-2 border-kone-blue">
+            <div className="card bg-white dark:bg-gray-800 border-2 border-kone-blue dark:border-kone-lightBlue">
               <div className="flex items-center justify-between">
                 <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900 mb-1">Report</h4>
-                  <p className="text-sm text-gray-600">
+                  <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">Report</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     Generate a summary report of the retrospective. This phase is required.
                   </p>
                 </div>
@@ -346,16 +346,16 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
         {/* Options Tab */}
         {activeTab === 'options' && (
           <div className="space-y-4">
-            <p className="text-gray-600 text-sm mb-4">
+            <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
               Customize additional settings for your retrospective session.
             </p>
 
             {/* Reactions */}
-            <div className="card border-2 border-kone-blue bg-white">
+            <div className="card border-2 border-kone-blue dark:border-kone-lightBlue bg-white dark:bg-gray-800">
               <div className="flex items-center justify-between">
                 <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900 mb-1">Reactions</h4>
-                  <p className="text-sm text-gray-600">
+                  <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">Reactions</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     Allow team members to react to cards with emojis.
                   </p>
                 </div>
@@ -364,7 +364,7 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
                     type="button"
                     onClick={() => setReactionsEnabled(!reactionsEnabled)}
                     className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
-                      reactionsEnabled ? 'bg-kone-blue' : 'bg-gray-300'
+                      reactionsEnabled ? 'bg-kone-blue' : 'bg-gray-300 dark:bg-gray-600'
                     }`}
                   >
                     <div className={`w-4 h-4 bg-white rounded-full transition-transform ${
@@ -376,11 +376,11 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
             </div>
 
             {/* Comments */}
-            <div className="card border-2 border-kone-blue bg-white">
+            <div className="card border-2 border-kone-blue dark:border-kone-lightBlue bg-white dark:bg-gray-800">
               <div className="flex items-center justify-between">
                 <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900 mb-1">Comments</h4>
-                  <p className="text-sm text-gray-600">
+                  <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">Comments</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     Allow team members to comment on cards.
                   </p>
                 </div>
@@ -389,7 +389,7 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
                     type="button"
                     onClick={() => setCommentsEnabled(!commentsEnabled)}
                     className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
-                      commentsEnabled ? 'bg-kone-blue' : 'bg-gray-300'
+                      commentsEnabled ? 'bg-kone-blue' : 'bg-gray-300 dark:bg-gray-600'
                     }`}
                   >
                     <div className={`w-4 h-4 bg-white rounded-full transition-transform ${
@@ -401,11 +401,11 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
             </div>
 
             {/* Comment Reactions */}
-            <div className="card border-2 border-kone-blue bg-white">
+            <div className="card border-2 border-kone-blue dark:border-kone-lightBlue bg-white dark:bg-gray-800">
               <div className="flex items-center justify-between">
                 <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900 mb-1">Comment Reactions</h4>
-                  <p className="text-sm text-gray-600">
+                  <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">Comment Reactions</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     Allow team members to react to comments with emojis.
                   </p>
                 </div>
@@ -414,7 +414,7 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
                     type="button"
                     onClick={() => setCommentReactionsEnabled(!commentReactionsEnabled)}
                     className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
-                      commentReactionsEnabled ? 'bg-kone-blue' : 'bg-gray-300'
+                      commentReactionsEnabled ? 'bg-kone-blue' : 'bg-gray-300 dark:bg-gray-600'
                     }`}
                   >
                     <div className={`w-4 h-4 bg-white rounded-full transition-transform ${
