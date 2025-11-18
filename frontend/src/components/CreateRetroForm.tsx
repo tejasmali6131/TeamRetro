@@ -20,6 +20,7 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
   const [activeTab, setActiveTab] = useState<TabType>('basic');
   
   // Process states
+  const [icebreakerEnabled, setIcebreakerEnabled] = useState(true);
   const [groupEnabled, setGroupEnabled] = useState(true);
   const [voteEnabled, setVoteEnabled] = useState(true);
   const [discussEnabled, setDiscussEnabled] = useState(true);
@@ -55,6 +56,7 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
     try {
       // Build stages configuration based on user selections
       const stages = [
+        { id: 'icebreaker', name: 'Icebreaker', duration: 0, enabled: icebreakerEnabled },
         { id: 'brainstorm', name: 'Brainstorm', duration: 0, enabled: true }, // Always enabled
         { id: 'group', name: 'Group', duration: 0, enabled: groupEnabled },
         { id: 'vote', name: 'Vote', duration: 0, enabled: voteEnabled },
@@ -156,6 +158,8 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
             {/* Process Tab */}
             {activeTab === 'process' && (
               <ProcessTab
+                icebreakerEnabled={icebreakerEnabled}
+                setIcebreakerEnabled={setIcebreakerEnabled}
                 groupEnabled={groupEnabled}
                 setGroupEnabled={setGroupEnabled}
                 voteEnabled={voteEnabled}

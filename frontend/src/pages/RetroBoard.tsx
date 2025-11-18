@@ -1,14 +1,23 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Users, Link as LinkIcon, Clock, Check, ChevronRight } from 'lucide-react';
+import { Clock, Check, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '@/services/api';
 import Header from '@/components/Header';
+import ParticipantsSidebar from '@/components/ParticipantsSidebar';
+import IcebreakerStage from '@/components/retroComponents/IcebreakerStage';
+import BrainstormStage from '@/components/retroComponents/BrainstormStage';
+import GroupStage from '@/components/retroComponents/GroupStage';
+import VoteStage from '@/components/retroComponents/VoteStage';
+import DiscussStage from '@/components/retroComponents/DiscussStage';
+import ReviewStage from '@/components/retroComponents/ReviewStage';
+import ReportStage from '@/components/retroComponents/ReportStage';
 
 interface Participant {
   id: string;
   name: string;
   joinedAt: Date;
+  isCreator?: boolean;
 }
 
 interface RetroStage {
@@ -24,6 +33,7 @@ interface RetroData {
   context: string;
   templateId: string;
   status: string;
+  creatorId?: string;
   stages?: RetroStage[];
   template?: {
     id: string;
@@ -46,9 +56,12 @@ export default function RetroBoard() {
   const [currentStageIndex, setCurrentStageIndex] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState<number>(0);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string>('');
+  const [ws, setWs] = useState<WebSocket | null>(null);
   
-  // Default stages if not provided by backend
+  // Default stages if not provided by backend - Added Icebreaker stage
   const defaultStages: RetroStage[] = [
+    { id: 'icebreaker', name: 'Icebreaker', duration: 0, enabled: true },
     { id: 'brainstorm', name: 'Brainstorm', duration: 0, enabled: true },
     { id: 'group', name: 'Group', duration: 0, enabled: true },
     { id: 'vote', name: 'Vote', duration: 0, enabled: true },
@@ -65,8 +78,93 @@ export default function RetroBoard() {
   useEffect(() => {
     if (retroId) {
       fetchRetroData();
-      fetchParticipants();
     }
+  }, [retroId]);
+
+  useEffect(() => {
+    let socket: WebSocket | null = null;
+    let isCleaning = false;
+    
+    if (retroId) {
+      const wsUrl = `ws://localhost:5000/ws/retro/${retroId}`;
+      console.log('Initializing WebSocket connection:', wsUrl);
+      
+      socket = new WebSocket(wsUrl);
+
+      socket.onopen = () => {
+        console.log('WebSocket connected successfully');
+      };
+
+      socket.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          console.log('WebSocket message received:', data);
+          
+          switch (data.type) {
+            case 'user-joined':
+              setCurrentUserId(data.userId);
+              if (data.userName) {
+                toast.success(`Joined as ${data.userName}`);
+              }
+              break;
+            case 'participants-update':
+              setParticipants(data.participants);
+              if (data.newParticipant && data.newParticipant.name) {
+                // Only show toast for other participants joining
+                const isCurrentUser = data.participants.some((p: any) => 
+                  p.id === data.newParticipant.id && p.name === data.newParticipant.name
+                );
+                if (!isCurrentUser) {
+                  toast.success(`${data.newParticipant.name} joined`);
+                }
+              }
+              break;
+            case 'stage-change':
+              setCurrentStageIndex(data.stageIndex);
+              toast(`Stage changed to ${enabledStages[data.stageIndex]?.name || 'next stage'}`);
+              break;
+            case 'creator-assigned':
+              if (data.isCreator) {
+                toast.success('You are now the room admin!');
+              }
+              break;
+            case 'icebreaker-update':
+              // Handled by IcebreakerStage component
+              break;
+            default:
+              break;
+          }
+        } catch (error) {
+          console.error('Error parsing WebSocket message:', error);
+        }
+      };
+
+      socket.onerror = (error) => {
+        console.error('WebSocket error:', error);
+        if (!isCleaning) {
+          toast.error('Connection error. Please refresh the page.');
+        }
+      };
+
+      socket.onclose = (event) => {
+        console.log('WebSocket closed. Code:', event.code, 'Reason:', event.reason);
+        // Only show error toast for unexpected closures (not during cleanup)
+        if (!isCleaning && event.code !== 1000 && event.code !== 1001) {
+          toast.error('Connection lost. Please refresh the page.');
+        }
+      };
+
+      setWs(socket);
+    }
+
+    // Cleanup function to close WebSocket when component unmounts or retroId changes
+    return () => {
+      isCleaning = true;
+      if (socket && socket.readyState !== WebSocket.CLOSED) {
+        console.log('Cleaning up WebSocket connection');
+        socket.close(1000, 'Component unmounting');
+      }
+    };
   }, [retroId]);
 
   useEffect(() => {
@@ -96,21 +194,6 @@ export default function RetroBoard() {
     }
   };
 
-  const fetchParticipants = async () => {
-    try {
-      const response = await api.get(`/retros/${retroId}/participants`);
-      setParticipants(response.data);
-    } catch (error) {
-      console.error('Failed to load participants:', error);
-    }
-  };
-
-  const copyRetroLink = () => {
-    const link = `${window.location.origin}/retro/${retroId}`;
-    navigator.clipboard.writeText(link);
-    toast.success('Link copied to clipboard!');
-  };
-
   const startTimer = () => {
     const currentStage = enabledStages[currentStageIndex];
     if (currentStage && currentStage.duration > 0) {
@@ -121,17 +204,35 @@ export default function RetroBoard() {
 
   const goToNextStage = () => {
     if (currentStageIndex < enabledStages.length - 1) {
-      setCurrentStageIndex(currentStageIndex + 1);
+      const newIndex = currentStageIndex + 1;
+      setCurrentStageIndex(newIndex);
       setIsTimerRunning(false);
       setTimeRemaining(0);
+      
+      // Broadcast stage change to all participants
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+          type: 'stage-change',
+          stageIndex: newIndex
+        }));
+      }
     }
   };
 
   const goToPreviousStage = () => {
     if (currentStageIndex > 0) {
-      setCurrentStageIndex(currentStageIndex - 1);
+      const newIndex = currentStageIndex - 1;
+      setCurrentStageIndex(newIndex);
       setIsTimerRunning(false);
       setTimeRemaining(0);
+      
+      // Broadcast stage change to all participants
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+          type: 'stage-change',
+          stageIndex: newIndex
+        }));
+      }
     }
   };
 
@@ -244,54 +345,67 @@ export default function RetroBoard() {
 
           {/* Stage Content Area */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 flex-1">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-              {currentStage?.name} Stage
-            </h2>
-
-            {/* Brainstorm Stage - Show Template Columns */}
-            {currentStage?.id === 'brainstorm' && retro.template && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {retro.template.columns.map((column) => (
-                  <div
-                    key={column.id}
-                    className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 min-h-[400px]"
-                  >
-                    {/* Inline styles needed for dynamic template colors from database */}
-                    <div
-                      className="flex items-center gap-2 mb-4 pb-2 border-b-2"
-                      style={{ borderBottomColor: column.color }}
-                    >
-                      <div
-                        className="w-3 h-3 rounded-full"
-                        style={{ background: column.color }}
-                      ></div>
-                      <h3 className="font-semibold text-gray-900 dark:text-gray-100">{column.name}</h3>
-                    </div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{column.placeholder}</p>
-                    <div className="space-y-2">
-                      {/* Cards will be added here */}
-                      <div className="text-center py-8 text-gray-400 dark:text-gray-500 text-sm">
-                        No cards yet. Add your thoughts!
-                      </div>
-                    </div>
-                    <button className="w-full mt-4 px-4 py-2 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-gray-600 dark:text-gray-400 hover:border-kone-blue dark:hover:border-kone-lightBlue hover:text-kone-blue dark:hover:text-kone-lightBlue transition-colors">
-                      + Add Card
-                    </button>
-                  </div>
-                ))}
-              </div>
+            {currentStage?.id === 'icebreaker' && (
+              <IcebreakerStage 
+                participants={participants}
+                currentUserId={currentUserId}
+                isRoomCreator={participants.some(p => p.id === currentUserId && p.isCreator)}
+                ws={ws}
+              />
             )}
 
-            {/* Other Stages Placeholder */}
-            {currentStage?.id !== 'brainstorm' && (
-              <div className="text-center py-12">
-                <p className="text-gray-600 dark:text-gray-400 mb-4">
-                  {currentStage?.name} stage content will be displayed here.
-                </p>
-                <p className="text-sm text-gray-500 dark:text-gray-600">
-                  This functionality will be implemented next.
-                </p>
-              </div>
+            {currentStage?.id === 'brainstorm' && (
+              <>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+                  Brainstorm Stage
+                </h2>
+                <BrainstormStage template={retro.template} />
+              </>
+            )}
+
+            {currentStage?.id === 'group' && (
+              <>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+                  Group Stage
+                </h2>
+                <GroupStage />
+              </>
+            )}
+
+            {currentStage?.id === 'vote' && (
+              <>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+                  Vote Stage
+                </h2>
+                <VoteStage />
+              </>
+            )}
+
+            {currentStage?.id === 'discuss' && (
+              <>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+                  Discuss Stage
+                </h2>
+                <DiscussStage />
+              </>
+            )}
+
+            {currentStage?.id === 'review' && (
+              <>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+                  Review Stage
+                </h2>
+                <ReviewStage />
+              </>
+            )}
+
+            {currentStage?.id === 'report' && (
+              <>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+                  Report Stage
+                </h2>
+                <ReportStage />
+              </>
             )}
           </div>
 
@@ -315,52 +429,12 @@ export default function RetroBoard() {
         </div>
 
         {/* Right Sidebar - Participants */}
-        <div className="w-80 flex-shrink-0">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 sticky top-24">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <Users className="w-5 h-5 text-kone-blue dark:text-kone-lightBlue" />
-                <h3 className="font-semibold text-gray-900 dark:text-gray-100">Participants</h3>
-              </div>
-              <span className="text-sm text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
-                {participants.length}
-              </span>
-            </div>
-
-            <div className="space-y-2 max-h-[calc(100vh-300px)] overflow-y-auto">
-              {participants.length > 0 ? (
-                participants.map((participant) => (
-                  <div
-                    key={participant.id}
-                    className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
-                  >
-                    <div className="w-10 h-10 bg-kone-blue dark:bg-kone-lightBlue text-white rounded-full flex items-center justify-center font-semibold">
-                      {participant.name.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-medium text-gray-900 dark:text-gray-100">{participant.name}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Online</p>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                  <Users className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">No participants yet</p>
-                  <p className="text-xs mt-1">Share the link to invite others</p>
-                </div>
-              )}
-            </div>
-
-            <button
-              onClick={copyRetroLink}
-              className="w-full mt-4 btn-secondary flex items-center justify-center gap-2"
-            >
-              <LinkIcon className="w-4 h-4" />
-              Invite Participants
-            </button>
-          </div>
-        </div>
+        <ParticipantsSidebar 
+          participants={participants}
+          retroId={retroId || ''}
+          currentUserId={currentUserId}
+          creatorId={participants.find(p => p.isCreator)?.id || ''}
+        />
       </div>
     </div>
   );

@@ -1,4 +1,6 @@
 interface ProcessTabProps {
+  icebreakerEnabled: boolean;
+  setIcebreakerEnabled: (enabled: boolean) => void;
   groupEnabled: boolean;
   setGroupEnabled: (enabled: boolean) => void;
   voteEnabled: boolean;
@@ -10,6 +12,8 @@ interface ProcessTabProps {
 }
 
 export default function ProcessTab({
+  icebreakerEnabled,
+  setIcebreakerEnabled,
   groupEnabled,
   setGroupEnabled,
   voteEnabled,
@@ -24,6 +28,38 @@ export default function ProcessTab({
       <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
         Configure how your retrospective session will flow and what phases it will include.
       </p>
+
+      {/* Icebreaker */}
+      <div
+        className={`card border-2 transition-colors ${
+          icebreakerEnabled
+            ? 'bg-white dark:bg-gray-800 border-kone-blue dark:border-kone-lightBlue'
+            : 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600'
+        }`}
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">Icebreaker</h4>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Fun questions to help team members get to know each other better.
+            </p>
+          </div>
+          <div className="flex-shrink-0 ml-4">
+            <button
+              type="button"
+              onClick={() => setIcebreakerEnabled(!icebreakerEnabled)}
+              aria-label={`${icebreakerEnabled ? 'Disable' : 'Enable'} icebreaker phase`}
+              className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
+                icebreakerEnabled ? 'bg-kone-blue dark:bg-kone-lightBlue' : 'bg-gray-300 dark:bg-gray-600'
+              }`}
+            >
+              <div className={`w-4 h-4 bg-white rounded-full transition-transform ${
+                icebreakerEnabled ? 'translate-x-6' : 'translate-x-0'
+              }`}></div>
+            </button>
+          </div>
+        </div>
+      </div>
 
       {/* Brainstorm - Always enabled */}
       <div className="card bg-white dark:bg-gray-800 border-2 border-kone-blue dark:border-kone-lightBlue">
@@ -141,14 +177,16 @@ export default function ProcessTab({
             <button
               type="button"
               onClick={() => setReviewEnabled(!reviewEnabled)}
-              aria-label={`${reviewEnabled ? 'Disable' : 'Enable'} review phase`}
+              aria-label={`${icebreakerEnabled ? 'Disable' : 'Enable'} icebreaker phase`}
               className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
-                reviewEnabled ? 'bg-kone-blue dark:bg-kone-lightBlue' : 'bg-gray-300 dark:bg-gray-600'
+                icebreakerEnabled ? 'bg-kone-blue dark:bg-kone-lightBlue' : 'bg-gray-300 dark:bg-gray-600'
               }`}
             >
-              <div className={`w-4 h-4 bg-white rounded-full transition-transform ${
-                reviewEnabled ? 'translate-x-6' : 'translate-x-0'
-              }`}></div>
+              <div
+                className={`w-4 h-4 bg-white rounded-full transition-transform ${
+                  icebreakerEnabled ? 'translate-x-6' : 'translate-x-0'
+                }`}
+              ></div>
             </button>
           </div>
         </div>
