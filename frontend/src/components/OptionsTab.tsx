@@ -5,6 +5,8 @@ interface OptionsTabProps {
   setCommentsEnabled: (enabled: boolean) => void;
   commentReactionsEnabled: boolean;
   setCommentReactionsEnabled: (enabled: boolean) => void;
+  nameDeck: string;
+  setNameDeck: (deck: string) => void;
 }
 
 export default function OptionsTab({
@@ -14,12 +16,37 @@ export default function OptionsTab({
   setCommentsEnabled,
   commentReactionsEnabled,
   setCommentReactionsEnabled,
+  nameDeck,
+  setNameDeck,
 }: OptionsTabProps) {
   return (
     <div className="space-y-4">
       <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
         Customize additional settings for your retrospective session.
       </p>
+
+      {/* Name Deck Selection */}
+      <div className="card border-2 border-kone-blue dark:border-kone-lightBlue bg-white dark:bg-gray-800">
+        <div>
+          <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">Participant Name Theme</h4>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+            Choose a theme for randomly assigned participant names.
+          </p>
+          <select
+            value={nameDeck}
+            onChange={(e) => setNameDeck(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-kone-blue dark:focus:ring-kone-lightBlue"
+            aria-label="Select participant name theme"
+          >
+            <option value="random">Random (All Themes)</option>
+            <option value="animals">Animals</option>
+            <option value="plants">Plants</option>
+            <option value="colors">Colors</option>
+            <option value="celestial">Celestial Bodies</option>
+            <option value="elements">Elements</option>
+          </select>
+        </div>
+      </div>
 
       {/* Reactions */}
       <div className="card border-2 border-kone-blue dark:border-kone-lightBlue bg-white dark:bg-gray-800">

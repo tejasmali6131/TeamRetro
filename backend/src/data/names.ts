@@ -43,6 +43,41 @@ const allNameCategories = [animals, plants, colors, celestial, elements];
 // Keep track of used names per session to avoid duplicates
 const usedNamesPerRetro: Map<string, Set<string>> = new Map();
 
+// Keep track of name deck preference per retro
+const nameDeckPerRetro: Map<string, string> = new Map();
+
+/**
+ * Get the appropriate name array based on deck preference
+ * @param deck - The name deck type
+ * @returns Array of names
+ */
+const getNameDeck = (deck: string): string[] => {
+  switch (deck) {
+    case 'animals':
+      return animals;
+    case 'plants':
+      return plants;
+    case 'colors':
+      return colors;
+    case 'celestial':
+      return celestial;
+    case 'elements':
+      return elements;
+    case 'random':
+    default:
+      return allNameCategories.flat();
+  }
+};
+
+/**
+ * Set the name deck preference for a retro session
+ * @param retroId - The ID of the retro session
+ * @param deck - The name deck type
+ */
+export const setNameDeck = (retroId: string, deck: string): void => {
+  nameDeckPerRetro.set(retroId, deck);
+};
+
 /**
  * Generate a random unique name for a participant in a retro session
  * @param retroId - The ID of the retro session
@@ -56,20 +91,29 @@ export const generateRandomName = (retroId: string): string => {
   
   const usedNames = usedNamesPerRetro.get(retroId)!;
   
-  // Flatten all name categories into one array
-  const allNames = allNameCategories.flat();
+  // Get the name deck for this retro (default to 'random')
+  const deck = nameDeckPerRetro.get(retroId) || 'random';
+  const namePool = getNameDeck(deck);
   
   // If we've used all names, reset the pool
-  if (usedNames.size >= allNames.length) {
+  if (usedNames.size >= namePool.length) {
     usedNames.clear();
   }
   
   // Find an unused name
   let randomName: string;
-  do {
-    const randomCategory = allNameCategories[Math.floor(Math.random() * allNameCategories.length)];
-    randomName = randomCategory[Math.floor(Math.random() * randomCategory.length)];
-  } while (usedNames.has(randomName));
+  if (deck === 'random') {
+    // For random deck, pick from any category
+    do {
+      const randomCategory = allNameCategories[Math.floor(Math.random() * allNameCategories.length)];
+      randomName = randomCategory[Math.floor(Math.random() * randomCategory.length)];
+    } while (usedNames.has(randomName));
+  } else {
+    // For specific deck, pick from that category
+    do {
+      randomName = namePool[Math.floor(Math.random() * namePool.length)];
+    } while (usedNames.has(randomName));
+  }
   
   // Mark this name as used
   usedNames.add(randomName);
@@ -83,6 +127,7 @@ export const generateRandomName = (retroId: string): string => {
  */
 export const clearUsedNames = (retroId: string): void => {
   usedNamesPerRetro.delete(retroId);
+  nameDeckPerRetro.delete(retroId);
 };
 
 /**

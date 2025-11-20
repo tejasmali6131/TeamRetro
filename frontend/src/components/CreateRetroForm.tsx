@@ -30,6 +30,7 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
   const [reactionsEnabled, setReactionsEnabled] = useState(true);
   const [commentsEnabled, setCommentsEnabled] = useState(true);
   const [commentReactionsEnabled, setCommentReactionsEnabled] = useState(true);
+  const [nameDeck, setNameDeck] = useState('random');
   
   const { register, handleSubmit, formState: { errors } } = useForm<CreateRetroData>({
     defaultValues: {
@@ -71,6 +72,7 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
         reactionsEnabled,
         commentsEnabled,
         commentReactionsEnabled,
+        nameDeck,
       };
 
       const response = await api.post('/retros', retroData);
@@ -180,6 +182,8 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
                 setCommentsEnabled={setCommentsEnabled}
                 commentReactionsEnabled={commentReactionsEnabled}
                 setCommentReactionsEnabled={setCommentReactionsEnabled}
+                nameDeck={nameDeck}
+                setNameDeck={setNameDeck}
               />
             )}
 

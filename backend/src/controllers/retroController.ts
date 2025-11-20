@@ -57,7 +57,8 @@ export const createRetro = (req: Request, res: Response): void => {
       stages,
       reactionsEnabled,
       commentsEnabled,
-      commentReactionsEnabled
+      commentReactionsEnabled,
+      nameDeck
     } = req.body;
     
     if (!sessionName || !templateId) {
@@ -90,6 +91,7 @@ export const createRetro = (req: Request, res: Response): void => {
       reactionsEnabled: reactionsEnabled !== undefined ? reactionsEnabled : true,
       commentsEnabled: commentsEnabled !== undefined ? commentsEnabled : true,
       commentReactionsEnabled: commentReactionsEnabled !== undefined ? commentReactionsEnabled : true,
+      nameDeck: nameDeck || 'random',
     });
     
     res.status(201).json(newRetro);

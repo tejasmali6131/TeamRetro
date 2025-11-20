@@ -1,6 +1,7 @@
 import { WebSocket, WebSocketServer } from 'ws';
 import { v4 as uuidv4 } from 'uuid';
-import { generateRandomName, clearUsedNames } from '../data/names';
+import { generateRandomName, clearUsedNames, setNameDeck } from '../data/names';
+import { getRetroById } from '../data/retros';
 
 interface Participant {
   id: string;
@@ -42,10 +43,15 @@ class WebSocketManager {
 
   private handleConnection(ws: WebSocket, retroId: string) {
     const userId = uuidv4();
-    const userName = generateRandomName(retroId);
-
+    
     // Get or create room
     if (!this.rooms.has(retroId)) {
+      // Set the name deck for this retro session
+      const retro = getRetroById(retroId);
+      if (retro && retro.nameDeck) {
+        setNameDeck(retroId, retro.nameDeck);
+      }
+      
       this.rooms.set(retroId, {
         id: retroId,
         participants: new Map(),
@@ -53,6 +59,8 @@ class WebSocketManager {
         currentStage: 0
       });
     }
+    
+    const userName = generateRandomName(retroId);
 
     const room = this.rooms.get(retroId)!;
     const isCreator = room.participants.size === 0;

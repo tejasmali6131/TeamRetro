@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
-import { Sparkles, Edit2, Check, X, ChevronRight } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Sparkles, Edit2, Check, X, ChevronRight, Smile } from 'lucide-react';
 import toast from 'react-hot-toast';
+import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 
 interface Participant {
   id: string;
@@ -33,8 +34,31 @@ export default function IcebreakerStage({ participants, currentUserId, isRoomCre
   const [participantAnswer, setParticipantAnswer] = useState('');
   const [answers, setAnswers] = useState<Record<string, string>>({});
 
+  // Refs for textareas so we can insert emojis at caret
+  const editTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const answerTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const [showEmojiFor, setShowEmojiFor] = useState<'edit' | 'answer' | null>(null);
+
   const currentQuestion = questions[currentQuestionIndex];
   const remainingParticipants = participants.filter(p => !answeredParticipants.has(p.id));
+
+  const handleEmojiClick = (emojiData: EmojiClickData, targetRef: HTMLTextAreaElement | null, setter: (v: string) => void) => {
+    if (!targetRef) return;
+    const el = targetRef;
+    const start = el.selectionStart ?? el.value.length;
+    const end = el.selectionEnd ?? el.value.length;
+    const before = el.value.substring(0, start);
+    const after = el.value.substring(end);
+    const newValue = before + emojiData.emoji + after;
+    setter(newValue);
+    
+    // Update caret position after React re-renders
+    setTimeout(() => {
+      const caret = start + emojiData.emoji.length;
+      el.selectionStart = el.selectionEnd = caret;
+      el.focus();
+    }, 0);
+  };
 
   // Listen for WebSocket messages
   useEffect(() => {
@@ -230,13 +254,31 @@ export default function IcebreakerStage({ participants, currentUserId, isRoomCre
 
         {isEditingQuestion ? (
           <div className="space-y-4">
-            <textarea
-              value={editedQuestion}
-              onChange={(e) => setEditedQuestion(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-kone-blue dark:focus:ring-kone-lightBlue resize-none"
-              rows={3}
-              placeholder="Enter your custom question..."
-            />
+            <div className="relative">
+              <textarea
+                ref={editTextareaRef}
+                value={editedQuestion}
+                onChange={(e) => setEditedQuestion(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-kone-blue dark:focus:ring-kone-lightBlue resize-none"
+                rows={3}
+                placeholder="Enter your custom question..."
+              />
+              <button
+                type="button"
+                onClick={() => setShowEmojiFor(showEmojiFor === 'edit' ? null : 'edit')}
+                aria-label="Toggle emoji picker"
+                className="absolute bottom-2 right-2 text-gray-500 dark:text-gray-400 hover:text-kone-blue dark:hover:text-kone-lightBlue transition-colors"
+              >
+                <Smile className="w-5 h-5" />
+              </button>
+              {showEmojiFor === 'edit' && (
+                <div className="absolute z-10 mt-2">
+                  <EmojiPicker 
+                    onEmojiClick={(emojiData) => handleEmojiClick(emojiData, editTextareaRef.current, setEditedQuestion)}
+                  />
+                </div>
+              )}
+            </div>
             <div className="flex gap-2 justify-end">
               <button
                 onClick={handleCancelEdit}
@@ -266,14 +308,32 @@ export default function IcebreakerStage({ participants, currentUserId, isRoomCre
         <div className="bg-gradient-to-r from-kone-blue to-kone-lightBlue dark:from-kone-lightBlue dark:to-kone-blue rounded-xl shadow-lg p-8">
           <div className="space-y-4">
             <p className="text-white text-lg font-semibold text-center">Your Answer</p>
-            <textarea
-              value={participantAnswer}
-              onChange={(e) => setParticipantAnswer(e.target.value)}
-              placeholder="Type your answer here (optional)..."
-              className="w-full px-4 py-3 rounded-lg text-gray-900 dark:text-gray-100 bg-white/90 dark:bg-gray-800/90 border-2 border-white/50 focus:outline-none focus:border-white resize-none"
-              rows={3}
-              autoFocus
-            />
+            <div className="relative">
+              <textarea
+                ref={answerTextareaRef}
+                value={participantAnswer}
+                onChange={(e) => setParticipantAnswer(e.target.value)}
+                placeholder="Type your answer here (optional)..."
+                className="w-full px-4 py-3 rounded-lg text-gray-900 dark:text-gray-100 bg-white/90 dark:bg-gray-800/90 border-2 border-white/50 focus:outline-none focus:border-white resize-none"
+                rows={3}
+                autoFocus
+              />
+              <button
+                type="button"
+                onClick={() => setShowEmojiFor(showEmojiFor === 'answer' ? null : 'answer')}
+                aria-label="Toggle emoji picker"
+                className="absolute bottom-2 right-2 text-gray-500 dark:text-gray-400 hover:text-kone-blue dark:hover:text-kone-lightBlue transition-colors"
+              >
+                <Smile className="w-5 h-5" />
+              </button>
+              {showEmojiFor === 'answer' && (
+                <div className="absolute z-10 mt-2">
+                  <EmojiPicker 
+                    onEmojiClick={(emojiData) => handleEmojiClick(emojiData, answerTextareaRef.current, setParticipantAnswer)}
+                  />
+                </div>
+              )}
+            </div>
             <div className="flex justify-center">
               <button
                 onClick={handleDoneAnswering}
@@ -291,9 +351,10 @@ export default function IcebreakerStage({ participants, currentUserId, isRoomCre
         <div className="flex justify-center">
           <button
             onClick={handleGetAnswers}
-            className="bg-kone-blue dark:bg-kone-lightBlue text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-kone-darkBlue dark:hover:bg-kone-blue transition-all transform hover:scale-105 shadow-lg"
+            disabled={participants.length === 1}
+            className="bg-kone-blue dark:bg-kone-lightBlue text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-kone-darkBlue dark:hover:bg-kone-blue transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-lg"
           >
-            Get Answers
+            {participants.length === 1 ? 'Waiting for more participants...' : 'Get Answers'}
           </button>
         </div>
       )}

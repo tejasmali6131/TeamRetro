@@ -18,6 +18,7 @@ export interface Retro {
   reactionsEnabled?: boolean;
   commentsEnabled?: boolean;
   commentReactionsEnabled?: boolean;
+  nameDeck?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -33,6 +34,7 @@ export interface CreateRetroDTO {
   reactionsEnabled?: boolean;
   commentsEnabled?: boolean;
   commentReactionsEnabled?: boolean;
+  nameDeck?: string;
 }
 
 export interface RetroSettings {
