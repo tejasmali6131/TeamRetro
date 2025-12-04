@@ -30,8 +30,8 @@ export default function ParticipantsSidebar({
   };
 
   return (
-    <div className="w-80 flex-shrink-0">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 sticky top-24">
+    <div className="w-80 flex-shrink-0 self-start">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Users className="w-5 h-5 text-kone-blue dark:text-kone-lightBlue" />

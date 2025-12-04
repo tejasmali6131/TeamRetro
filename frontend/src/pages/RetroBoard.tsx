@@ -305,9 +305,9 @@ export default function RetroBoard() {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 container mx-auto px-4 py-6 flex gap-6">
+      <div className="flex-1 container mx-auto px-4 py-6 flex gap-6 overflow-hidden">
         {/* Main Board Area */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-w-0">
           {/* Timer and Controls */}
           {currentStage && currentStage.duration > 0 && (
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
@@ -344,7 +344,7 @@ export default function RetroBoard() {
           )}
 
           {/* Stage Content Area */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 flex-1">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 flex-1 overflow-hidden">
             {currentStage?.id === 'icebreaker' && (
               <IcebreakerStage 
                 participants={participants}
@@ -359,7 +359,12 @@ export default function RetroBoard() {
                 <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">
                   Brainstorm Stage
                 </h2>
-                <BrainstormStage template={retro.template} />
+                <BrainstormStage 
+                  template={retro.template} 
+                  currentUserId={currentUserId}
+                  ws={ws}
+                  retroId={retroId || ''}
+                />
               </>
             )}
 

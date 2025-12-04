@@ -148,6 +148,30 @@ class WebSocketManager {
           });
           break;
 
+        case 'card-create':
+          // Broadcast card creation to all participants
+          this.broadcastToRoom(retroId, {
+            type: 'card-created',
+            card: data.card
+          }, userId); // Exclude sender since they already added it locally
+          break;
+
+        case 'card-update':
+          // Broadcast card update to all participants
+          this.broadcastToRoom(retroId, {
+            type: 'card-updated',
+            card: data.card
+          }, userId); // Exclude sender
+          break;
+
+        case 'card-delete':
+          // Broadcast card deletion to all participants
+          this.broadcastToRoom(retroId, {
+            type: 'card-deleted',
+            cardId: data.cardId
+          }, userId); // Exclude sender
+          break;
+
         default:
           break;
       }
