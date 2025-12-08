@@ -172,6 +172,25 @@ class WebSocketManager {
           }, userId); // Exclude sender
           break;
 
+        case 'cards-group':
+          // Broadcast card grouping to all participants
+          this.broadcastToRoom(retroId, {
+            type: 'cards-grouped',
+            groupId: data.groupId,
+            cardIds: data.cardIds,
+            columnId: data.columnId
+          }, userId); // Exclude sender
+          break;
+
+        case 'card-ungroup':
+          // Broadcast card ungrouping to all participants
+          this.broadcastToRoom(retroId, {
+            type: 'card-ungrouped',
+            cardId: data.cardId,
+            groupId: data.groupId
+          }, userId); // Exclude sender
+          break;
+
         default:
           break;
       }

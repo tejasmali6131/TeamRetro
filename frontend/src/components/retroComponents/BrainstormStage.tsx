@@ -17,6 +17,7 @@ interface Card {
   columnId: string;
   content: string;
   authorId: string;
+  groupId: string | null;
   createdAt: Date;
 }
 
@@ -25,62 +26,17 @@ interface BrainstormStageProps {
   currentUserId: string;
   ws: WebSocket | null;
   retroId: string;
+  cards: Card[];
+  setCards: React.Dispatch<React.SetStateAction<Card[]>>;
 }
 
-export default function BrainstormStage({ template, currentUserId, ws, retroId }: BrainstormStageProps) {
-  const [cards, setCards] = useState<Card[]>([]);
+export default function BrainstormStage({ template, currentUserId, ws, retroId, cards, setCards }: BrainstormStageProps) {
   const [activeInput, setActiveInput] = useState<string | null>(null);
   const [inputValue, setInputValue] = useState('');
   const [editingCardId, setEditingCardId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const editInputRef = useRef<HTMLTextAreaElement>(null);
-
-  // Listen for WebSocket card events
-  useEffect(() => {
-    if (!ws) return;
-
-    const handleMessage = (event: MessageEvent) => {
-      try {
-        const data = JSON.parse(event.data);
-        
-        switch (data.type) {
-          case 'card-created':
-            // Add the new card to our local state
-            setCards(prev => [...prev, {
-              id: data.card.id,
-              columnId: data.card.columnId,
-              content: data.card.content,
-              authorId: data.card.authorId,
-              createdAt: new Date(data.card.createdAt)
-            }]);
-            break;
-            
-          case 'card-updated':
-            // Update the card content
-            setCards(prev => prev.map(card => 
-              card.id === data.card.id 
-                ? { ...card, content: data.card.content }
-                : card
-            ));
-            break;
-            
-          case 'card-deleted':
-            // Remove the card
-            setCards(prev => prev.filter(card => card.id !== data.cardId));
-            break;
-            
-          default:
-            break;
-        }
-      } catch (error) {
-        console.error('Error handling brainstorm message:', error);
-      }
-    };
-
-    ws.addEventListener('message', handleMessage);
-    return () => ws.removeEventListener('message', handleMessage);
-  }, [ws]);
 
   // Focus input when opening
   useEffect(() => {
@@ -109,6 +65,7 @@ export default function BrainstormStage({ template, currentUserId, ws, retroId }
       columnId,
       content: inputValue.trim(),
       authorId: currentUserId,
+      groupId: null,
       createdAt: new Date()
     };
 

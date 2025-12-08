@@ -47,6 +47,23 @@ interface RetroData {
   };
 }
 
+// Card interface shared across stages
+interface Card {
+  id: string;
+  columnId: string;
+  content: string;
+  authorId: string;
+  groupId: string | null;
+  createdAt: Date;
+}
+
+// Card group interface
+interface CardGroup {
+  id: string;
+  cardIds: string[];
+  columnId: string;
+}
+
 export default function RetroBoard() {
   const { retroId } = useParams<{ retroId: string }>();
   const navigate = useNavigate();
@@ -58,6 +75,10 @@ export default function RetroBoard() {
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string>('');
   const [ws, setWs] = useState<WebSocket | null>(null);
+  
+  // Shared card state across stages
+  const [cards, setCards] = useState<Card[]>([]);
+  const [cardGroups, setCardGroups] = useState<CardGroup[]>([]);
   
   // Default stages if not provided by backend - Added Icebreaker stage
   const defaultStages: RetroStage[] = [
@@ -131,6 +152,70 @@ export default function RetroBoard() {
             case 'icebreaker-update':
               // Handled by IcebreakerStage component
               break;
+            
+            // Card events - handled at RetroBoard level for shared state
+            case 'card-created':
+              setCards(prev => [...prev, {
+                id: data.card.id,
+                columnId: data.card.columnId,
+                content: data.card.content,
+                authorId: data.card.authorId,
+                groupId: data.card.groupId || null,
+                createdAt: new Date(data.card.createdAt)
+              }]);
+              break;
+              
+            case 'card-updated':
+              setCards(prev => prev.map(card => 
+                card.id === data.card.id 
+                  ? { ...card, content: data.card.content }
+                  : card
+              ));
+              break;
+              
+            case 'card-deleted':
+              setCards(prev => prev.filter(card => card.id !== data.cardId));
+              break;
+            
+            // Group events
+            case 'cards-grouped':
+              setCardGroups(prev => {
+                // Remove cards from existing groups
+                const updatedGroups = prev.map(group => ({
+                  ...group,
+                  cardIds: group.cardIds.filter(id => !data.cardIds.includes(id))
+                })).filter(group => group.cardIds.length > 0);
+                
+                // Add the new group
+                return [...updatedGroups, {
+                  id: data.groupId,
+                  cardIds: data.cardIds,
+                  columnId: data.columnId
+                }];
+              });
+              // Update cards with groupId
+              setCards(prev => prev.map(card => 
+                data.cardIds.includes(card.id)
+                  ? { ...card, groupId: data.groupId }
+                  : card
+              ));
+              break;
+              
+            case 'card-ungrouped':
+              setCardGroups(prev => {
+                return prev.map(group => ({
+                  ...group,
+                  cardIds: group.cardIds.filter(id => id !== data.cardId)
+                })).filter(group => group.cardIds.length > 1); // Remove groups with less than 2 cards
+              });
+              // Update card to remove groupId
+              setCards(prev => prev.map(card => 
+                card.id === data.cardId
+                  ? { ...card, groupId: null }
+                  : card
+              ));
+              break;
+
             default:
               break;
           }
@@ -364,6 +449,8 @@ export default function RetroBoard() {
                   currentUserId={currentUserId}
                   ws={ws}
                   retroId={retroId || ''}
+                  cards={cards}
+                  setCards={setCards}
                 />
               </>
             )}
@@ -373,7 +460,16 @@ export default function RetroBoard() {
                 <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">
                   Group Stage
                 </h2>
-                <GroupStage />
+                <GroupStage 
+                  template={retro.template}
+                  currentUserId={currentUserId}
+                  ws={ws}
+                  retroId={retroId || ''}
+                  cards={cards}
+                  setCards={setCards}
+                  cardGroups={cardGroups}
+                  setCardGroups={setCardGroups}
+                />
               </>
             )}
 
