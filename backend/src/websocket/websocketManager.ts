@@ -191,6 +191,46 @@ class WebSocketManager {
           }, userId); // Exclude sender
           break;
 
+        case 'vote-add':
+          // Broadcast vote addition to all participants
+          this.broadcastToRoom(retroId, {
+            type: 'vote-added',
+            itemId: data.itemId,
+            columnId: data.columnId,
+            voterId: data.userId
+          }, userId); // Exclude sender since they already added it locally
+          break;
+
+        case 'vote-remove':
+          // Broadcast vote removal to all participants
+          this.broadcastToRoom(retroId, {
+            type: 'vote-removed',
+            itemId: data.itemId,
+            voterId: data.userId
+          }, userId); // Exclude sender
+          break;
+
+        case 'discuss-update':
+          // Broadcast discuss stage updates to all participants
+          this.broadcastToRoom(retroId, {
+            type: 'discuss-update',
+            action: data.action,
+            itemIndex: data.itemIndex,
+            itemId: data.itemId,
+            duration: data.duration
+          }, userId); // Exclude sender
+          break;
+
+        case 'action-item-update':
+          // Broadcast action item updates to all participants
+          this.broadcastToRoom(retroId, {
+            type: 'action-item-update',
+            action: data.action,
+            actionItem: data.actionItem,
+            actionItemId: data.actionItemId
+          }, userId); // Exclude sender
+          break;
+
         default:
           break;
       }

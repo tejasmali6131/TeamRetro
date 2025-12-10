@@ -73,3 +73,51 @@
     @apply bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700;
   }
 }
+
+/* Print Styles */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  
+  .print\\:hidden {
+    display: none !important;
+  }
+  
+  .print\\:shadow-none {
+    box-shadow: none !important;
+  }
+  
+  .print\\:border-none {
+    border: none !important;
+  }
+
+  /* Hide non-essential elements when printing */
+  header, 
+  nav,
+  aside,
+  .btn-primary,
+  .btn-secondary,
+  button {
+    display: none !important;
+  }
+
+  /* Ensure the report content is visible */
+  [data-print="true"] {
+    display: block !important;
+  }
+
+  /* Page breaks */
+  .page-break {
+    page-break-before: always;
+  }
+
+  /* Ensure backgrounds are printed */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}

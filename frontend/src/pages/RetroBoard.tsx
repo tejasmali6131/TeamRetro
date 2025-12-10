@@ -35,6 +35,7 @@ interface RetroData {
   status: string;
   creatorId?: string;
   stages?: RetroStage[];
+  votingLimit?: number;
   template?: {
     id: string;
     name: string;
@@ -64,6 +65,22 @@ interface CardGroup {
   columnId: string;
 }
 
+// Vote data interface - maps itemId to array of voterIds
+interface VoteData {
+  [itemId: string]: string[];
+}
+
+// Action item interface
+interface ActionItem {
+  id: string;
+  title: string;
+  description: string;
+  assigneeId: string;
+  priority: 'low' | 'medium' | 'high';
+  dueDate: string;
+  status: 'pending' | 'in_progress' | 'completed';
+}
+
 export default function RetroBoard() {
   const { retroId } = useParams<{ retroId: string }>();
   const navigate = useNavigate();
@@ -79,6 +96,12 @@ export default function RetroBoard() {
   // Shared card state across stages
   const [cards, setCards] = useState<Card[]>([]);
   const [cardGroups, setCardGroups] = useState<CardGroup[]>([]);
+  
+  // Vote state - shared across vote and discuss stages
+  const [votes, setVotes] = useState<VoteData>({});
+  
+  // Action items state - shared across review and report stages
+  const [actionItems, setActionItems] = useState<ActionItem[]>([]);
   
   // Default stages if not provided by backend - Added Icebreaker stage
   const defaultStages: RetroStage[] = [
@@ -214,6 +237,43 @@ export default function RetroBoard() {
                   ? { ...card, groupId: null }
                   : card
               ));
+              break;
+
+            // Vote events
+            case 'vote-added':
+              setVotes(prev => ({
+                ...prev,
+                [data.itemId]: [...(prev[data.itemId] || []), data.voterId]
+              }));
+              break;
+              
+            case 'vote-removed':
+              setVotes(prev => {
+                const currentVotes = prev[data.itemId] || [];
+                const voterIndex = currentVotes.findIndex(id => id === data.voterId);
+                if (voterIndex === -1) return prev;
+                
+                const newVotes = [...currentVotes];
+                newVotes.splice(voterIndex, 1);
+                
+                return {
+                  ...prev,
+                  [data.itemId]: newVotes
+                };
+              });
+              break;
+
+            // Action item events
+            case 'action-item-update':
+              if (data.action === 'action-added') {
+                setActionItems(prev => [...prev, data.actionItem]);
+              } else if (data.action === 'action-updated') {
+                setActionItems(prev => prev.map(item => 
+                  item.id === data.actionItem.id ? data.actionItem : item
+                ));
+              } else if (data.action === 'action-deleted') {
+                setActionItems(prev => prev.filter(item => item.id !== data.actionItemId));
+              }
               break;
 
             default:
@@ -478,7 +538,17 @@ export default function RetroBoard() {
                 <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">
                   Vote Stage
                 </h2>
-                <VoteStage />
+                <VoteStage 
+                  template={retro.template}
+                  currentUserId={currentUserId}
+                  ws={ws}
+                  retroId={retroId || ''}
+                  cards={cards}
+                  cardGroups={cardGroups}
+                  votingLimit={retro.votingLimit || 5}
+                  votes={votes}
+                  setVotes={setVotes}
+                />
               </>
             )}
 
@@ -487,7 +557,16 @@ export default function RetroBoard() {
                 <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">
                   Discuss Stage
                 </h2>
-                <DiscussStage />
+                <DiscussStage 
+                  template={retro.template}
+                  currentUserId={currentUserId}
+                  ws={ws}
+                  retroId={retroId || ''}
+                  cards={cards}
+                  cardGroups={cardGroups}
+                  votes={votes}
+                  isRoomCreator={participants.some(p => p.id === currentUserId && p.isCreator)}
+                />
               </>
             )}
 
@@ -496,7 +575,19 @@ export default function RetroBoard() {
                 <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">
                   Review Stage
                 </h2>
-                <ReviewStage />
+                <ReviewStage 
+                  template={retro.template}
+                  currentUserId={currentUserId}
+                  ws={ws}
+                  retroId={retroId || ''}
+                  cards={cards}
+                  cardGroups={cardGroups}
+                  votes={votes}
+                  participants={participants}
+                  isRoomCreator={participants.some(p => p.id === currentUserId && p.isCreator)}
+                  actionItems={actionItems}
+                  setActionItems={setActionItems}
+                />
               </>
             )}
 
@@ -505,7 +596,17 @@ export default function RetroBoard() {
                 <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">
                   Report Stage
                 </h2>
-                <ReportStage />
+                <ReportStage 
+                  template={retro.template}
+                  retroId={retroId || ''}
+                  retroName={retro.sessionName}
+                  retroContext={retro.context}
+                  cards={cards}
+                  cardGroups={cardGroups}
+                  votes={votes}
+                  participants={participants}
+                  actionItems={actionItems}
+                />
               </>
             )}
           </div>
