@@ -70,12 +70,12 @@ export default function ParticipantsSidebar({
                         {participant.name}
                         {isCurrentUser && ' (You)'}
                       </p>
-                      {isCurrentUserCreator && isCreator && (
+                      {isCreator && (
                         <Crown className="w-4 h-4 text-yellow-500" aria-label="Room Creator" />
                       )}
                     </div>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {isCreator && isCurrentUserCreator ? 'Admin' : 'Online'}
+                      {isCreator ? 'Facilitator' : 'Online'}
                     </p>
                   </div>
                 </div>

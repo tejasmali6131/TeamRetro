@@ -91,6 +91,7 @@ export default function RetroBoard() {
   const [timeRemaining, setTimeRemaining] = useState<number>(0);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string>('');
+  const [isCurrentUserCreator, setIsCurrentUserCreator] = useState<boolean>(false);
   const [ws, setWs] = useState<WebSocket | null>(null);
   
   // Shared card state across stages
@@ -102,6 +103,9 @@ export default function RetroBoard() {
   
   // Action items state - shared across review and report stages
   const [actionItems, setActionItems] = useState<ActionItem[]>([]);
+  
+  // Discussed items state - shared between discuss stage and RetroBoard
+  const [discussedItems, setDiscussedItems] = useState<Set<string>>(new Set());
   
   // Default stages if not provided by backend - Added Icebreaker stage
   const defaultStages: RetroStage[] = [
@@ -130,7 +134,16 @@ export default function RetroBoard() {
     let isCleaning = false;
     
     if (retroId) {
-      const wsUrl = `ws://localhost:5000/ws/retro/${retroId}`;
+      // Check for existing userId in sessionStorage for reconnection
+      const storedUserId = sessionStorage.getItem(`retro_userId_${retroId}`);
+      
+      // Build WebSocket URL with optional userId for reconnection
+      let wsUrl = `ws://localhost:5000/ws/retro/${retroId}`;
+      if (storedUserId) {
+        wsUrl += `?userId=${storedUserId}`;
+        console.log('Attempting to reconnect with stored userId:', storedUserId);
+      }
+      
       console.log('Initializing WebSocket connection:', wsUrl);
       
       socket = new WebSocket(wsUrl);
@@ -146,8 +159,40 @@ export default function RetroBoard() {
           
           switch (data.type) {
             case 'user-joined':
+              // Store userId in sessionStorage for reconnection
+              sessionStorage.setItem(`retro_userId_${retroId}`, data.userId);
               setCurrentUserId(data.userId);
-              if (data.userName) {
+              
+              // Store creator status
+              if (data.isCreator !== undefined) {
+                setIsCurrentUserCreator(data.isCreator);
+              }
+              
+              // Restore state from server (works for both new users and reconnections)
+              if (data.currentState) {
+                if (data.currentState.currentStage !== undefined) {
+                  setCurrentStageIndex(data.currentState.currentStage);
+                }
+                if (data.currentState.cards) {
+                  setCards(data.currentState.cards);
+                }
+                if (data.currentState.cardGroups) {
+                  setCardGroups(data.currentState.cardGroups);
+                }
+                if (data.currentState.votes) {
+                  setVotes(data.currentState.votes);
+                }
+                if (data.currentState.actionItems) {
+                  setActionItems(data.currentState.actionItems);
+                }
+                if (data.currentState.discussedItems) {
+                  setDiscussedItems(new Set(data.currentState.discussedItems));
+                }
+              }
+              
+              if (data.isReconnection) {
+                toast.success(`Reconnected as ${data.userName}`);
+              } else if (data.userName) {
                 toast.success(`Joined as ${data.userName}`);
               }
               break;
@@ -273,6 +318,19 @@ export default function RetroBoard() {
                 ));
               } else if (data.action === 'action-deleted') {
                 setActionItems(prev => prev.filter(item => item.id !== data.actionItemId));
+              }
+              break;
+
+            // Discuss stage events - handle discussed items at RetroBoard level for persistence
+            case 'discuss-update':
+              if (data.action === 'item-marked-discussed' && data.itemId) {
+                setDiscussedItems(prev => new Set([...prev, data.itemId]));
+              } else if (data.action === 'item-unmarked-discussed' && data.itemId) {
+                setDiscussedItems(prev => {
+                  const newSet = new Set(prev);
+                  newSet.delete(data.itemId);
+                  return newSet;
+                });
               }
               break;
 
@@ -566,6 +624,8 @@ export default function RetroBoard() {
                   cardGroups={cardGroups}
                   votes={votes}
                   isRoomCreator={participants.some(p => p.id === currentUserId && p.isCreator)}
+                  discussedItems={discussedItems}
+                  setDiscussedItems={setDiscussedItems}
                 />
               </>
             )}

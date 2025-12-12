@@ -50,6 +50,8 @@ interface DiscussStageProps {
   cardGroups: CardGroup[];
   votes: VoteData;
   isRoomCreator: boolean;
+  discussedItems: Set<string>;
+  setDiscussedItems: React.Dispatch<React.SetStateAction<Set<string>>>;
 }
 
 export default function DiscussStage({ 
@@ -60,10 +62,11 @@ export default function DiscussStage({
   cards, 
   cardGroups,
   votes,
-  isRoomCreator
+  isRoomCreator,
+  discussedItems,
+  setDiscussedItems
 }: DiscussStageProps) {
   const [currentItemIndex, setCurrentItemIndex] = useState(0);
-  const [discussedItems, setDiscussedItems] = useState<Set<string>>(new Set());
   const [discussionTimer, setDiscussionTimer] = useState(0);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [timerDuration, setTimerDuration] = useState(120); // 2 minutes default
@@ -156,16 +159,7 @@ export default function DiscussStage({
               setDiscussionTimer(0);
               setIsTimerRunning(false);
               break;
-            case 'item-marked-discussed':
-              setDiscussedItems(prev => new Set([...prev, data.itemId]));
-              break;
-            case 'item-unmarked-discussed':
-              setDiscussedItems(prev => {
-                const newSet = new Set(prev);
-                newSet.delete(data.itemId);
-                return newSet;
-              });
-              break;
+            // item-marked-discussed and item-unmarked-discussed are handled by RetroBoard
             case 'timer-started':
               setDiscussionTimer(data.duration);
               setIsTimerRunning(true);

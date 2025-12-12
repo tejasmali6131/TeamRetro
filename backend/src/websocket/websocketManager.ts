@@ -6,10 +6,36 @@ import { getRetroById } from '../data/retros';
 interface Participant {
   id: string;
   name: string;
-  ws: WebSocket;
+  ws: WebSocket | null;
   retroId: string;
   joinedAt: Date;
   isCreator: boolean;
+  isConnected: boolean;
+}
+
+interface Card {
+  id: string;
+  columnId: string;
+  content: string;
+  authorId: string;
+  groupId: string | null;
+  createdAt: Date;
+}
+
+interface CardGroup {
+  id: string;
+  cardIds: string[];
+  columnId: string;
+}
+
+interface ActionItem {
+  id: string;
+  title: string;
+  description: string;
+  assigneeId: string;
+  priority: 'low' | 'medium' | 'high';
+  dueDate: string;
+  status: 'pending' | 'in_progress' | 'completed';
 }
 
 interface RetroRoom {
@@ -17,7 +43,17 @@ interface RetroRoom {
   participants: Map<string, Participant>;
   creatorId: string;
   currentStage: number;
+  // Persistent state
+  cards: Card[];
+  cardGroups: CardGroup[];
+  votes: { [itemId: string]: string[] };
+  actionItems: ActionItem[];
+  discussedItems: string[];
 }
+
+// Store for disconnected users (to allow reconnection within a time window)
+const disconnectedUsers: Map<string, { retroId: string; name: string; isCreator: boolean; disconnectedAt: Date }> = new Map();
+const RECONNECT_TIMEOUT = 5 * 60 * 1000; // 5 minutes to reconnect
 
 class WebSocketManager {
   private wss: WebSocketServer | null = null;
@@ -27,9 +63,13 @@ class WebSocketManager {
     this.wss = new WebSocketServer({ server });
 
     this.wss.on('connection', (ws: WebSocket, req) => {
-      // Extract retroId from URL: /ws/retro/{retroId}
+      // Extract retroId and optional userId from URL: /ws/retro/{retroId}?userId={userId}
       const urlMatch = req.url?.match(/\/ws\/retro\/([^\/\?]+)/);
       const retroId = urlMatch?.[1];
+      
+      // Parse query parameters for userId (for reconnection)
+      const urlParams = new URLSearchParams(req.url?.split('?')[1] || '');
+      const existingUserId = urlParams.get('userId');
 
       if (!retroId) {
         console.log('WebSocket connection rejected: no retroId');
@@ -37,13 +77,26 @@ class WebSocketManager {
         return;
       }
 
-      this.handleConnection(ws, retroId);
+      this.handleConnection(ws, retroId, existingUserId);
     });
+
+    // Cleanup disconnected users periodically
+    setInterval(() => {
+      const now = Date.now();
+      disconnectedUsers.forEach((data, odUserId) => {
+        if (now - data.disconnectedAt.getTime() > RECONNECT_TIMEOUT) {
+          disconnectedUsers.delete(odUserId);
+          console.log(`Cleaned up disconnected user session: ${odUserId}`);
+        }
+      });
+    }, 60000); // Check every minute
   }
 
-  private handleConnection(ws: WebSocket, retroId: string) {
-    const userId = uuidv4();
-    
+  private handleConnection(ws: WebSocket, retroId: string, existingUserId: string | null) {
+    let userId: string;
+    let userName: string;
+    let isReconnection = false;
+
     // Get or create room
     if (!this.rooms.has(retroId)) {
       // Set the name deck for this retro session
@@ -52,18 +105,78 @@ class WebSocketManager {
         setNameDeck(retroId, retro.nameDeck);
       }
       
+      console.log(`Creating new room for retro ${retroId}`);
       this.rooms.set(retroId, {
         id: retroId,
         participants: new Map(),
-        creatorId: userId, // First person to join becomes creator
-        currentStage: 0
+        creatorId: '',
+        currentStage: 0,
+        cards: [],
+        cardGroups: [],
+        votes: {},
+        actionItems: [],
+        discussedItems: []
       });
+    } else {
+      console.log(`Room ${retroId} already exists`);
     }
-    
-    const userName = generateRandomName(retroId);
 
     const room = this.rooms.get(retroId)!;
-    const isCreator = room.participants.size === 0;
+
+    // Check if this is a reconnection attempt
+    if (existingUserId) {
+      // Check if user exists in disconnected users
+      const disconnectedUser = disconnectedUsers.get(existingUserId);
+      if (disconnectedUser && disconnectedUser.retroId === retroId) {
+        // Reconnecting user
+        userId = existingUserId;
+        userName = disconnectedUser.name;
+        isReconnection = true;
+        disconnectedUsers.delete(existingUserId);
+        console.log(`User ${userName} (${userId}) reconnecting to retro ${retroId}`);
+      } else {
+        // Check if user still exists in room (just disconnected WebSocket)
+        const existingParticipant = room.participants.get(existingUserId);
+        if (existingParticipant) {
+          userId = existingUserId;
+          userName = existingParticipant.name;
+          isReconnection = true;
+          console.log(`User ${userName} (${userId}) reconnecting (was still in room) to retro ${retroId}`);
+        } else if (room.creatorId === existingUserId) {
+          // The user was the creator but got disconnected - restore them
+          userId = existingUserId;
+          userName = generateRandomName(retroId);
+          isReconnection = true;
+          console.log(`User ${userId} reconnecting as creator to retro ${retroId}`);
+        } else {
+          // existingUserId not valid, create new user
+          userId = uuidv4();
+          userName = generateRandomName(retroId);
+        }
+      }
+    } else {
+      // New user
+      userId = uuidv4();
+      userName = generateRandomName(retroId);
+    }
+
+    // Determine if this user should be the creator
+    // User is creator if: room has no creator, OR user's ID matches room's creatorId, 
+    // OR room was just created and all previous participants are disconnected (StrictMode recovery)
+    console.log(`Room ${retroId} - current creatorId: "${room.creatorId}", participants count: ${room.participants.size}`);
+    
+    const connectedParticipants = Array.from(room.participants.values()).filter(p => p.isConnected);
+    const roomHasNoActiveCreator = !room.creatorId || 
+      (room.creatorId && !room.participants.get(room.creatorId)?.isConnected && connectedParticipants.length === 0);
+    
+    if (roomHasNoActiveCreator && room.creatorId !== userId) {
+      room.creatorId = userId;
+      console.log(`User ${userName} (${userId}) is the room creator (new or recovered)`);
+    } else if (room.creatorId === userId) {
+      console.log(`User ${userName} (${userId}) is reconnecting as the room creator`);
+    } else {
+      console.log(`User ${userName} (${userId}) is NOT the creator - creator is ${room.creatorId}`);
+    }
 
     const participant: Participant = {
       id: userId,
@@ -71,25 +184,32 @@ class WebSocketManager {
       ws,
       retroId,
       joinedAt: new Date(),
-      isCreator
+      isCreator: userId === room.creatorId,
+      isConnected: true
     };
-
-    if (isCreator) {
-      room.creatorId = userId;
-    }
 
     room.participants.set(userId, participant);
 
-    // Send user their ID and name
+    // Send user their ID, name, and current state
     ws.send(JSON.stringify({
       type: 'user-joined',
       userId,
       userName,
-      isCreator
+      isCreator: userId === room.creatorId,
+      isReconnection,
+      // Send current room state for state restoration
+      currentState: {
+        currentStage: room.currentStage,
+        cards: room.cards,
+        cardGroups: room.cardGroups,
+        votes: room.votes,
+        actionItems: room.actionItems,
+        discussedItems: room.discussedItems
+      }
     }));
 
     // Broadcast updated participants list to all
-    this.broadcastParticipants(retroId, participant);
+    this.broadcastParticipants(retroId, isReconnection ? undefined : participant);
 
     // Handle messages
     ws.on('message', (message: string) => {
@@ -101,7 +221,7 @@ class WebSocketManager {
       this.handleDisconnect(userId, retroId);
     });
 
-    console.log(`User ${userName} (${userId}) joined retro ${retroId}`);
+    console.log(`User ${userName} (${userId}) ${isReconnection ? 'reconnected to' : 'joined'} retro ${retroId}`);
   }
 
   private handleMessage(userId: string, retroId: string, message: string) {
@@ -135,7 +255,6 @@ class WebSocketManager {
 
         case 'icebreaker-update':
           // Broadcast icebreaker updates to all participants (including sender)
-          // Don't exclude anyone by not passing excludeUserId
           this.broadcastToRoom(retroId, {
             type: 'icebreaker-update',
             action: data.action,
@@ -149,68 +268,114 @@ class WebSocketManager {
           break;
 
         case 'card-create':
+          // Store card in room state
+          room.cards.push(data.card);
           // Broadcast card creation to all participants
           this.broadcastToRoom(retroId, {
             type: 'card-created',
             card: data.card
-          }, userId); // Exclude sender since they already added it locally
+          }, userId);
           break;
 
         case 'card-update':
+          // Update card in room state
+          const cardIndex = room.cards.findIndex(c => c.id === data.card.id);
+          if (cardIndex !== -1) {
+            room.cards[cardIndex] = { ...room.cards[cardIndex], ...data.card };
+          }
           // Broadcast card update to all participants
           this.broadcastToRoom(retroId, {
             type: 'card-updated',
             card: data.card
-          }, userId); // Exclude sender
+          }, userId);
           break;
 
         case 'card-delete':
+          // Remove card from room state
+          room.cards = room.cards.filter(c => c.id !== data.cardId);
           // Broadcast card deletion to all participants
           this.broadcastToRoom(retroId, {
             type: 'card-deleted',
             cardId: data.cardId
-          }, userId); // Exclude sender
+          }, userId);
           break;
 
         case 'cards-group':
+          // Update groups in room state
+          // Remove cards from existing groups
+          room.cardGroups = room.cardGroups.map(group => ({
+            ...group,
+            cardIds: group.cardIds.filter(id => !data.cardIds.includes(id))
+          })).filter(group => group.cardIds.length > 0);
+          // Add new group
+          room.cardGroups.push({
+            id: data.groupId,
+            cardIds: data.cardIds,
+            columnId: data.columnId
+          });
           // Broadcast card grouping to all participants
           this.broadcastToRoom(retroId, {
             type: 'cards-grouped',
             groupId: data.groupId,
             cardIds: data.cardIds,
             columnId: data.columnId
-          }, userId); // Exclude sender
+          }, userId);
           break;
 
         case 'card-ungroup':
+          // Update groups in room state
+          room.cardGroups = room.cardGroups.map(group => ({
+            ...group,
+            cardIds: group.cardIds.filter(id => id !== data.cardId)
+          })).filter(group => group.cardIds.length > 0);
           // Broadcast card ungrouping to all participants
           this.broadcastToRoom(retroId, {
             type: 'card-ungrouped',
             cardId: data.cardId,
             groupId: data.groupId
-          }, userId); // Exclude sender
+          }, userId);
           break;
 
         case 'vote-add':
+          // Store vote in room state (allow multiple votes per user on same item)
+          if (!room.votes[data.itemId]) {
+            room.votes[data.itemId] = [];
+          }
+          room.votes[data.itemId].push(data.userId);
           // Broadcast vote addition to all participants
           this.broadcastToRoom(retroId, {
             type: 'vote-added',
             itemId: data.itemId,
             columnId: data.columnId,
             voterId: data.userId
-          }, userId); // Exclude sender since they already added it locally
+          }, userId);
           break;
 
         case 'vote-remove':
+          // Remove one vote from room state (only one instance, not all)
+          if (room.votes[data.itemId]) {
+            const voteIndex = room.votes[data.itemId].indexOf(data.userId);
+            if (voteIndex !== -1) {
+              room.votes[data.itemId].splice(voteIndex, 1);
+            }
+          }
           // Broadcast vote removal to all participants
           this.broadcastToRoom(retroId, {
             type: 'vote-removed',
             itemId: data.itemId,
             voterId: data.userId
-          }, userId); // Exclude sender
+          }, userId);
           break;
 
         case 'discuss-update':
+          // Store discussed items in room state
+          if (data.action === 'item-marked-discussed' && data.itemId) {
+            if (!room.discussedItems.includes(data.itemId)) {
+              room.discussedItems.push(data.itemId);
+            }
+          } else if (data.action === 'item-unmarked-discussed' && data.itemId) {
+            room.discussedItems = room.discussedItems.filter(id => id !== data.itemId);
+          }
           // Broadcast discuss stage updates to all participants
           this.broadcastToRoom(retroId, {
             type: 'discuss-update',
@@ -218,17 +383,28 @@ class WebSocketManager {
             itemIndex: data.itemIndex,
             itemId: data.itemId,
             duration: data.duration
-          }, userId); // Exclude sender
+          }, userId);
           break;
 
         case 'action-item-update':
+          // Store action items in room state
+          if (data.action === 'action-added' && data.actionItem) {
+            room.actionItems.push(data.actionItem);
+          } else if (data.action === 'action-updated' && data.actionItem) {
+            const actionIndex = room.actionItems.findIndex(a => a.id === data.actionItem.id);
+            if (actionIndex !== -1) {
+              room.actionItems[actionIndex] = data.actionItem;
+            }
+          } else if (data.action === 'action-deleted' && data.actionItemId) {
+            room.actionItems = room.actionItems.filter(a => a.id !== data.actionItemId);
+          }
           // Broadcast action item updates to all participants
           this.broadcastToRoom(retroId, {
             type: 'action-item-update',
             action: data.action,
             actionItem: data.actionItem,
             actionItemId: data.actionItemId
-          }, userId); // Exclude sender
+          }, userId);
           break;
 
         default:
@@ -245,33 +421,42 @@ class WebSocketManager {
 
     const participant = room.participants.get(userId);
     if (participant) {
-      room.participants.delete(userId);
+      // Store user info for potential reconnection
+      disconnectedUsers.set(userId, {
+        retroId: retroId,
+        name: participant.name,
+        isCreator: participant.isCreator,
+        disconnectedAt: new Date()
+      });
 
-      console.log(`User ${participant.name} (${userId}) left retro ${retroId}`);
+      // Mark as disconnected but don't remove immediately
+      participant.isConnected = false;
+      participant.ws = null;
 
-      // If room is empty, clean it up
-      if (room.participants.size === 0) {
-        // Clear used names for this retro session
-        clearUsedNames(retroId);
-        this.rooms.delete(retroId);
-        console.log(`Room ${retroId} cleaned up`);
-      } else {
-        // If creator left, assign new creator
-        if (room.creatorId === userId) {
-          const newCreator = Array.from(room.participants.values())[0];
-          room.creatorId = newCreator.id;
-          newCreator.isCreator = true;
+      console.log(`User ${participant.name} (${userId}) disconnected from retro ${retroId}`);
 
-          // Notify new creator
-          newCreator.ws.send(JSON.stringify({
-            type: 'creator-assigned',
-            isCreator: true
-          }));
+      // Set a timeout to fully remove the participant if they don't reconnect
+      setTimeout(() => {
+        const currentRoom = this.rooms.get(retroId);
+        if (!currentRoom) return;
+
+        const currentParticipant = currentRoom.participants.get(userId);
+        if (currentParticipant && !currentParticipant.isConnected) {
+          currentRoom.participants.delete(userId);
+          console.log(`User ${currentParticipant.name} (${userId}) removed after disconnect timeout`);
+
+          // If room is empty, clean it up
+          if (currentRoom.participants.size === 0) {
+            clearUsedNames(retroId);
+            this.rooms.delete(retroId);
+            console.log(`Room ${retroId} cleaned up`);
+          } else {
+            // Creator remains the same even if they leave - do not reassign
+            // Broadcast updated participants list
+            this.broadcastParticipants(retroId);
+          }
         }
-
-        // Broadcast updated participants list
-        this.broadcastParticipants(retroId);
-      }
+      }, 30000); // Wait 30 seconds before removing
     }
   }
 
@@ -279,12 +464,14 @@ class WebSocketManager {
     const room = this.rooms.get(retroId);
     if (!room) return;
 
-    const participantsList = Array.from(room.participants.values()).map(p => ({
-      id: p.id,
-      name: p.name,
-      joinedAt: p.joinedAt,
-      isCreator: p.id === room.creatorId
-    }));
+    const participantsList = Array.from(room.participants.values())
+      .filter(p => p.isConnected)
+      .map(p => ({
+        id: p.id,
+        name: p.name,
+        joinedAt: p.joinedAt,
+        isCreator: p.id === room.creatorId
+      }));
 
     const message = JSON.stringify({
       type: 'participants-update',
@@ -296,7 +483,7 @@ class WebSocketManager {
     });
 
     room.participants.forEach(participant => {
-      if (participant.ws.readyState === WebSocket.OPEN) {
+      if (participant.ws && participant.ws.readyState === WebSocket.OPEN) {
         participant.ws.send(message);
       }
     });
@@ -309,8 +496,9 @@ class WebSocketManager {
     const messageStr = JSON.stringify(message);
 
     room.participants.forEach(participant => {
-      // If excludeUserId is undefined, send to all; otherwise skip the excluded user
-      if ((excludeUserId === undefined || participant.id !== excludeUserId) && participant.ws.readyState === WebSocket.OPEN) {
+      if ((excludeUserId === undefined || participant.id !== excludeUserId) && 
+          participant.ws && 
+          participant.ws.readyState === WebSocket.OPEN) {
         participant.ws.send(messageStr);
       }
     });
@@ -324,12 +512,14 @@ class WebSocketManager {
     const room = this.rooms.get(retroId);
     if (!room) return [];
 
-    return Array.from(room.participants.values()).map(p => ({
-      id: p.id,
-      name: p.name,
-      joinedAt: p.joinedAt,
-      isCreator: p.id === room.creatorId
-    }));
+    return Array.from(room.participants.values())
+      .filter(p => p.isConnected)
+      .map(p => ({
+        id: p.id,
+        name: p.name,
+        joinedAt: p.joinedAt,
+        isCreator: p.id === room.creatorId
+      }));
   }
 }
 

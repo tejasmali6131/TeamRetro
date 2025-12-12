@@ -1,8 +1,7 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { 
   FileText, 
   Download, 
-  Share2, 
   Copy, 
   CheckCircle2, 
   ThumbsUp, 
@@ -10,7 +9,6 @@ import {
   Target, 
   Users, 
   Calendar,
-  Clock,
   Flag,
   User,
   TrendingUp,
@@ -93,7 +91,6 @@ export default function ReportStage({
 }: ReportStageProps) {
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [copied, setCopied] = useState(false);
-  const reportRef = useRef<HTMLDivElement>(null);
 
   // Calculate statistics
   const totalCards = cards.length;
@@ -215,51 +212,322 @@ export default function ReportStage({
     }
   };
 
-  // Generate PDF using browser print
+  // Generate text-based PDF
   const handleDownloadPdf = async () => {
     setIsGeneratingPdf(true);
     
     try {
-      // Dynamic import of jspdf and html2canvas
-      const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
-        import('jspdf'),
-        import('html2canvas')
-      ]);
+      const { default: jsPDF } = await import('jspdf');
 
-      const reportElement = reportRef.current;
-      if (!reportElement) {
-        throw new Error('Report element not found');
-      }
-
-      // Create canvas from the report element
-      const canvas = await html2canvas(reportElement, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#ffffff'
-      });
-
-      const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4'
       });
 
-      const imgWidth = 210; // A4 width in mm
-      const pageHeight = 297; // A4 height in mm
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
-      let position = 0;
+      const pageWidth = 210;
+      const pageHeight = 297;
+      const margin = 15;
+      const contentWidth = pageWidth - (margin * 2);
+      let yPos = margin;
 
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
+      // Helper function to check if we need a new page
+      const checkNewPage = (requiredSpace: number) => {
+        if (yPos + requiredSpace > pageHeight - margin) {
+          pdf.addPage();
+          yPos = margin;
+          return true;
+        }
+        return false;
+      };
 
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+      // Helper function to add wrapped text
+      const addWrappedText = (text: string, x: number, fontSize: number, maxWidth: number, lineHeight: number = 1.2) => {
+        pdf.setFontSize(fontSize);
+        const lines = pdf.splitTextToSize(text, maxWidth);
+        lines.forEach((line: string) => {
+          checkNewPage(fontSize * 0.35 * lineHeight);
+          pdf.text(line, x, yPos);
+          yPos += fontSize * 0.35 * lineHeight;
+        });
+      };
+
+      // ===== HEADER =====
+      pdf.setFillColor(0, 82, 147); // KONE blue
+      pdf.rect(0, 0, pageWidth, 35, 'F');
+      
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(22);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('RETROSPECTIVE REPORT', pageWidth / 2, 15, { align: 'center' });
+      
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(retroName || 'Untitled Session', pageWidth / 2, 23, { align: 'center' });
+      
+      pdf.setFontSize(10);
+      pdf.text(`${format(new Date(), 'MMMM d, yyyy')} • ${template?.name || 'Unknown'} Template`, pageWidth / 2, 30, { align: 'center' });
+      
+      yPos = 45;
+      pdf.setTextColor(0, 0, 0);
+
+      // ===== CONTEXT (if available) =====
+      if (retroContext) {
+        pdf.setFontSize(10);
+        pdf.setTextColor(100, 100, 100);
+        addWrappedText(retroContext, margin, 10, contentWidth);
+        yPos += 5;
+        pdf.setTextColor(0, 0, 0);
+      }
+
+      // ===== STATISTICS =====
+      checkNewPage(25);
+      pdf.setFillColor(245, 247, 250);
+      pdf.rect(margin, yPos, contentWidth, 20, 'F');
+      
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'bold');
+      const statsY = yPos + 8;
+      const statWidth = contentWidth / 5;
+      
+      const stats = [
+        { label: 'Participants', value: participants.length.toString() },
+        { label: 'Cards', value: totalCards.toString() },
+        { label: 'Votes', value: totalVotes.toString() },
+        { label: 'Actions', value: totalActions.toString() },
+        { label: 'High Priority', value: highPriorityActions.toString() }
+      ];
+      
+      stats.forEach((stat, i) => {
+        const x = margin + (statWidth * i) + (statWidth / 2);
+        pdf.setFontSize(14);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(0, 82, 147);
+        pdf.text(stat.value, x, statsY, { align: 'center' });
+        pdf.setFontSize(8);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setTextColor(100, 100, 100);
+        pdf.text(stat.label, x, statsY + 6, { align: 'center' });
+      });
+      
+      yPos += 28;
+      pdf.setTextColor(0, 0, 0);
+
+      // ===== TOP VOTED ITEMS =====
+      checkNewPage(15);
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(0, 82, 147);
+      pdf.text('Top Voted Items', margin, yPos);
+      yPos += 8;
+      pdf.setTextColor(0, 0, 0);
+
+      if (topVotedItems.length === 0) {
+        pdf.setFontSize(10);
+        pdf.setFont('helvetica', 'italic');
+        pdf.setTextColor(128, 128, 128);
+        pdf.text('No voted items', margin, yPos);
+        yPos += 6;
+      } else {
+        topVotedItems.forEach((item, index) => {
+          checkNewPage(12);
+          const column = getColumnInfo(item.columnId);
+          
+          pdf.setFontSize(10);
+          pdf.setFont('helvetica', 'bold');
+          pdf.text(`${index + 1}.`, margin, yPos);
+          
+          // Category tag
+          pdf.setFillColor(230, 230, 230);
+          const tagText = column?.name || 'Unknown';
+          const tagWidth = pdf.getTextWidth(tagText) + 4;
+          pdf.roundedRect(margin + 8, yPos - 3.5, tagWidth, 5, 1, 1, 'F');
+          pdf.setFontSize(8);
+          pdf.setFont('helvetica', 'normal');
+          pdf.text(tagText, margin + 10, yPos);
+          
+          // Vote count
+          pdf.setFontSize(9);
+          pdf.setTextColor(0, 82, 147);
+          pdf.text(`(${item.voteCount} votes)`, pageWidth - margin, yPos, { align: 'right' });
+          pdf.setTextColor(0, 0, 0);
+          
+          yPos += 5;
+          
+          // Content
+          pdf.setFontSize(10);
+          pdf.setFont('helvetica', 'normal');
+          const truncatedContent = item.content.length > 100 ? item.content.substring(0, 100) + '...' : item.content;
+          addWrappedText(truncatedContent, margin + 8, 10, contentWidth - 15);
+          yPos += 3;
+        });
+      }
+      yPos += 5;
+
+      // ===== ACTION ITEMS =====
+      checkNewPage(20);
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(0, 82, 147);
+      pdf.text('Action Items', margin, yPos);
+      yPos += 8;
+      pdf.setTextColor(0, 0, 0);
+
+      if (actionItems.length === 0) {
+        pdf.setFontSize(10);
+        pdf.setFont('helvetica', 'italic');
+        pdf.setTextColor(128, 128, 128);
+        pdf.text('No action items created', margin, yPos);
+        yPos += 6;
+      } else {
+        // Table header
+        checkNewPage(10);
+        pdf.setFillColor(240, 240, 240);
+        pdf.rect(margin, yPos - 4, contentWidth, 7, 'F');
+        pdf.setFontSize(9);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('Action', margin + 2, yPos);
+        pdf.text('Assignee', margin + 75, yPos);
+        pdf.text('Priority', margin + 115, yPos);
+        pdf.text('Due Date', margin + 145, yPos);
+        yPos += 6;
+
+        // Table rows
+        actionItems.forEach((action) => {
+          checkNewPage(12);
+          pdf.setFontSize(9);
+          pdf.setFont('helvetica', 'normal');
+          
+          // Action title (truncated)
+          const title = action.title.length > 35 ? action.title.substring(0, 35) + '...' : action.title;
+          pdf.text(title, margin + 2, yPos);
+          
+          // Assignee
+          const assignee = getAssigneeName(action.assigneeId);
+          const assigneeText = assignee.length > 15 ? assignee.substring(0, 15) + '...' : assignee;
+          pdf.text(assigneeText, margin + 75, yPos);
+          
+          // Priority with color
+          if (action.priority === 'high') {
+            pdf.setTextColor(220, 38, 38);
+          } else if (action.priority === 'medium') {
+            pdf.setTextColor(202, 138, 4);
+          } else {
+            pdf.setTextColor(22, 163, 74);
+          }
+          pdf.text(action.priority.charAt(0).toUpperCase() + action.priority.slice(1), margin + 115, yPos);
+          pdf.setTextColor(0, 0, 0);
+          
+          // Due date
+          const dueDate = action.dueDate ? format(new Date(action.dueDate), 'MMM d, yyyy') : 'Not set';
+          pdf.text(dueDate, margin + 145, yPos);
+          
+          yPos += 6;
+        });
+      }
+      yPos += 5;
+
+      // ===== FEEDBACK BY CATEGORY =====
+      checkNewPage(20);
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(0, 82, 147);
+      pdf.text('Feedback by Category', margin, yPos);
+      yPos += 8;
+      pdf.setTextColor(0, 0, 0);
+
+      template?.columns.forEach((column) => {
+        const colCards = columnData[column.id]?.cards || [];
+        const colGroups = columnData[column.id]?.groups || [];
+        const totalItems = colCards.length + colGroups.length;
+
+        checkNewPage(15);
+        
+        // Column header
+        pdf.setFillColor(245, 247, 250);
+        pdf.rect(margin, yPos - 4, contentWidth, 7, 'F');
+        pdf.setFontSize(11);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(`${column.name} (${totalItems} items)`, margin + 2, yPos);
+        yPos += 6;
+
+        if (totalItems === 0) {
+          pdf.setFontSize(9);
+          pdf.setFont('helvetica', 'italic');
+          pdf.setTextColor(128, 128, 128);
+          pdf.text('No items', margin + 5, yPos);
+          yPos += 5;
+          pdf.setTextColor(0, 0, 0);
+        } else {
+          // Individual cards
+          colCards.forEach((card) => {
+            checkNewPage(10);
+            pdf.setFontSize(9);
+            pdf.setFont('helvetica', 'normal');
+            const voteText = `(${getVoteCount(card.id)} votes)`;
+            pdf.setTextColor(100, 100, 100);
+            pdf.text(voteText, pageWidth - margin, yPos, { align: 'right' });
+            pdf.setTextColor(0, 0, 0);
+            
+            pdf.text('•', margin + 3, yPos);
+            const cardContent = card.content.length > 80 ? card.content.substring(0, 80) + '...' : card.content;
+            addWrappedText(cardContent, margin + 8, 9, contentWidth - 30);
+          });
+
+          // Groups
+          colGroups.forEach((group) => {
+            checkNewPage(10);
+            pdf.setFontSize(9);
+            pdf.setFont('helvetica', 'normal');
+            
+            pdf.setTextColor(100, 100, 100);
+            pdf.text(`(${group.voteCount} votes)`, pageWidth - margin, yPos, { align: 'right' });
+            pdf.setTextColor(0, 0, 0);
+            
+            pdf.text('•', margin + 3, yPos);
+            pdf.setFont('helvetica', 'italic');
+            pdf.text('[Group]', margin + 8, yPos);
+            pdf.setFont('helvetica', 'normal');
+            yPos += 4;
+            
+            group.cards.forEach((card) => {
+              checkNewPage(6);
+              const cardContent = card.content.length > 70 ? card.content.substring(0, 70) + '...' : card.content;
+              pdf.text(`  - ${cardContent}`, margin + 10, yPos);
+              yPos += 4;
+            });
+            yPos += 2;
+          });
+        }
+        yPos += 5;
+      });
+
+      // ===== PARTICIPANTS =====
+      checkNewPage(20);
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(0, 82, 147);
+      pdf.text('Participants', margin, yPos);
+      yPos += 8;
+      pdf.setTextColor(0, 0, 0);
+
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      const participantList = participants.map(p => p.name + (p.isCreator ? ' (Facilitator)' : '')).join(', ');
+      addWrappedText(participantList, margin, 10, contentWidth);
+
+      // ===== FOOTER =====
+      const totalPages = pdf.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        pdf.setPage(i);
+        pdf.setFontSize(8);
+        pdf.setTextColor(150, 150, 150);
+        pdf.text(
+          `Generated by KONE Retrospective Tool • ${format(new Date(), 'MMMM d, yyyy h:mm a')} • Page ${i} of ${totalPages}`,
+          pageWidth / 2,
+          pageHeight - 8,
+          { align: 'center' }
+        );
       }
 
       const fileName = `${retroName.replace(/[^a-z0-9]/gi, '_')}_Report_${format(new Date(), 'yyyy-MM-dd')}.pdf`;
@@ -389,7 +657,7 @@ ${participants.map(p => `• ${p.name}${p.isCreator ? ' (Facilitator)' : ''}`).j
       </div>
 
       {/* Printable Report Content */}
-      <div ref={reportRef} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 print:shadow-none print:border-none">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 print:shadow-none print:border-none">
         {/* Report Header */}
         <div className="text-center mb-8 pb-6 border-b border-gray-200 dark:border-gray-700">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
