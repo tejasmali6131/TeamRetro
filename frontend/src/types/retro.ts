@@ -36,13 +36,6 @@ export interface Retro {
   updatedAt: Date;
 }
 
-export interface Participant {
-  id: string;
-  retroId: string;
-  name: string;
-  joinedAt: Date;
-}
-
 export interface CreateRetroData {
   sessionName: string;
   context: string;
@@ -54,12 +47,4 @@ export interface CreateRetroData {
   reactionsEnabled?: boolean;
   commentsEnabled?: boolean;
   commentReactionsEnabled?: boolean;
-}
-
-export interface RetroSettings {
-  isAnonymous: boolean;
-  votingLimit: number;
-  timerDuration: number | null;
-  allowComments: boolean;
-  allowGrouping: boolean;
 }

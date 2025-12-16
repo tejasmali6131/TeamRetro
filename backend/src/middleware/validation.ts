@@ -15,21 +15,3 @@ export const validateRetroCreation = (req: Request, res: Response, next: NextFun
 
   next();
 };
-
-export const validateCardCreation = (req: Request, res: Response, next: NextFunction): void => {
-  const { retroId, columnId, content } = req.body;
-
-  if (!retroId || !columnId || !content) {
-    res.status(400).json({ 
-      message: 'Retro ID, column ID, and content are required' 
-    });
-    return;
-  }
-
-  if (content.trim().length === 0) {
-    res.status(400).json({ message: 'Card content cannot be empty' });
-    return;
-  }
-
-  next();
-};

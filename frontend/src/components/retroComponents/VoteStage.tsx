@@ -73,11 +73,6 @@ export default function VoteStage({
     return votes[itemId]?.length || 0;
   };
 
-  // Check if current user has voted on this item
-  const hasUserVoted = (itemId: string): boolean => {
-    return votes[itemId]?.includes(currentUserId) || false;
-  };
-
   // Get number of times current user voted on this item
   const getUserVoteCountForItem = (itemId: string): number => {
     return votes[itemId]?.filter(id => id === currentUserId).length || 0;

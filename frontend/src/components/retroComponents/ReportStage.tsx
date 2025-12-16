@@ -9,7 +9,6 @@ import {
   Target, 
   Users, 
   Calendar,
-  Flag,
   User,
   TrendingUp,
   BarChart3,
@@ -80,7 +79,6 @@ interface ReportStageProps {
 
 export default function ReportStage({ 
   template, 
-  retroId,
   retroName,
   retroContext,
   cards, 

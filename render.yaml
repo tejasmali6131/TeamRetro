@@ -1,0 +1,13 @@
+# Render Blueprint - https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: team-retro
+    env: node
+    plan: free
+    buildCommand: chmod +x render-build.sh && ./render-build.sh
+    startCommand: cd backend && npm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000

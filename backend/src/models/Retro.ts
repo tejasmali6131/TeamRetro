@@ -36,11 +36,3 @@ export interface CreateRetroDTO {
   commentReactionsEnabled?: boolean;
   nameDeck?: string;
 }
-
-export interface RetroSettings {
-  isAnonymous: boolean;
-  votingLimit: number;
-  timerDuration: number | null;
-  allowComments: boolean;
-  allowGrouping: boolean;
-}

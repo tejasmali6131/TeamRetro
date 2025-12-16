@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import path from 'path';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -16,12 +17,21 @@ export default defineConfig({
       '@/context': '/src/context',
     },
   },
+  build: {
+    // Build output to backend's public folder for single server deployment
+    outDir: path.resolve(__dirname, '../backend/public'),
+    emptyOutDir: true,
+  },
   server: {
     port: 3000,
     proxy: {
       '/api': {
         target: 'http://localhost:5000',
         changeOrigin: true,
+      },
+      '/ws': {
+        target: 'ws://localhost:5000',
+        ws: true,
       },
     },
   },

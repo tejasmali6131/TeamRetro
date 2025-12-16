@@ -40,7 +40,6 @@ interface GroupStageProps {
 
 export default function GroupStage({ 
   template, 
-  currentUserId, 
   ws, 
   retroId, 
   cards, 
@@ -64,10 +63,6 @@ export default function GroupStage({
     const group = cardGroups.find(g => g.id === groupId);
     if (!group) return [];
     return group.cardIds.map(id => cards.find(c => c.id === id)).filter(Boolean) as Card[];
-  };
-
-  const isCardGrouped = (cardId: string): boolean => {
-    return cardGroups.some(group => group.cardIds.includes(cardId));
   };
 
   const getFirstCardInGroup = (groupId: string): string | undefined => {
@@ -329,7 +324,7 @@ export default function GroupStage({
                             </span>
                           </div>
                           <div className="space-y-2">
-                            {groupedCards.map((groupedCard, idx) => (
+                            {groupedCards.map((groupedCard) => (
                               <div 
                                 key={groupedCard.id}
                                 className="flex items-start gap-2 p-2 bg-gray-50 dark:bg-gray-700 rounded text-sm"

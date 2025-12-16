@@ -10,7 +10,6 @@ import {
   Clock, 
   Edit2, 
   Save, 
-  X,
   Flag,
   ThumbsUp,
   MessageCircle,
@@ -83,14 +82,12 @@ interface ReviewStageProps {
 
 export default function ReviewStage({ 
   template, 
-  currentUserId, 
   ws, 
   retroId,
   cards, 
   cardGroups,
   votes,
   participants,
-  isRoomCreator,
   actionItems,
   setActionItems
 }: ReviewStageProps) {

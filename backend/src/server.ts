@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
+import path from 'path';
 import { createServer } from 'http';
 import { wsManager } from './websocket/websocketManager';
 
@@ -31,7 +32,7 @@ import templateRoutes from './routes/templateRoutes';
 import retroRoutes from './routes/retroRoutes';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 
-// Routes
+// API Routes
 app.use('/api/templates', templateRoutes);
 app.use('/api/retros', retroRoutes);
 // app.use('/api/auth', authRoutes);
@@ -39,8 +40,21 @@ app.use('/api/retros', retroRoutes);
 // app.use('/api/actions', actionRoutes);
 // app.use('/api/users', userRoutes);
 
-// Error handling
-app.use(notFoundHandler);
+// Serve static files from the frontend build directory
+const publicPath = path.join(__dirname, '..', 'public');
+app.use(express.static(publicPath));
+
+// Handle client-side routing - serve index.html for all non-API routes
+app.get('*', (req, res, next) => {
+  // Skip API routes and WebSocket routes
+  if (req.path.startsWith('/api') || req.path.startsWith('/ws') || req.path === '/health') {
+    return next();
+  }
+  res.sendFile(path.join(publicPath, 'index.html'));
+});
+
+// Error handling (only for API routes)
+app.use('/api', notFoundHandler);
 app.use(errorHandler);
 
 // Create HTTP server and initialize WebSocket

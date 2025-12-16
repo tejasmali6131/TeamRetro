@@ -7,6 +7,9 @@
     "start": "node dist/server.js",
     "dev": "nodemon src/server.ts",
     "build": "tsc",
+    "build:frontend": "cd ../frontend && npm run build",
+    "build:all": "npm run build:frontend && npm run build",
+    "start:prod": "npm run build:all && npm run start",
     "test": "jest",
     "lint": "eslint . --ext .ts",
     "format": "prettier --write \"src/**/*.ts\""

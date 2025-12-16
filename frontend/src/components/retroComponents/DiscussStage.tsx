@@ -56,7 +56,6 @@ interface DiscussStageProps {
 
 export default function DiscussStage({ 
   template, 
-  currentUserId, 
   ws, 
   retroId,
   cards, 

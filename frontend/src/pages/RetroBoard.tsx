@@ -91,7 +91,6 @@ export default function RetroBoard() {
   const [timeRemaining, setTimeRemaining] = useState<number>(0);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string>('');
-  const [isCurrentUserCreator, setIsCurrentUserCreator] = useState<boolean>(false);
   const [ws, setWs] = useState<WebSocket | null>(null);
   
   // Shared card state across stages
@@ -137,8 +136,10 @@ export default function RetroBoard() {
       // Check for existing userId in sessionStorage for reconnection
       const storedUserId = sessionStorage.getItem(`retro_userId_${retroId}`);
       
-      // Build WebSocket URL with optional userId for reconnection
-      let wsUrl = `ws://localhost:5000/ws/retro/${retroId}`;
+      // Build WebSocket URL dynamically based on current host (works for both dev and production)
+      const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsHost = import.meta.env.VITE_WS_URL || `${wsProtocol}//${window.location.host}`;
+      let wsUrl = `${wsHost}/ws/retro/${retroId}`;
       if (storedUserId) {
         wsUrl += `?userId=${storedUserId}`;
         console.log('Attempting to reconnect with stored userId:', storedUserId);
@@ -162,11 +163,6 @@ export default function RetroBoard() {
               // Store userId in sessionStorage for reconnection
               sessionStorage.setItem(`retro_userId_${retroId}`, data.userId);
               setCurrentUserId(data.userId);
-              
-              // Store creator status
-              if (data.isCreator !== undefined) {
-                setIsCurrentUserCreator(data.isCreator);
-              }
               
               // Restore state from server (works for both new users and reconnections)
               if (data.currentState) {
