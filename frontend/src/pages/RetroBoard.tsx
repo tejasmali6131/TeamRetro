@@ -106,6 +106,9 @@ export default function RetroBoard() {
   // Discussed items state - shared between discuss stage and RetroBoard
   const [discussedItems, setDiscussedItems] = useState<Set<string>>(new Set());
   
+  // Stage done status - tracks which users are done with each stage
+  const [stageDoneStatus, setStageDoneStatus] = useState<{ [stageId: string]: string[] }>({});
+  
   // Default stages if not provided by backend - Added Icebreaker stage
   const defaultStages: RetroStage[] = [
     { id: 'icebreaker', name: 'Icebreaker', duration: 0, enabled: true },
@@ -184,6 +187,9 @@ export default function RetroBoard() {
                 if (data.currentState.discussedItems) {
                   setDiscussedItems(new Set(data.currentState.discussedItems));
                 }
+                if (data.currentState.stageDoneStatus) {
+                  setStageDoneStatus(data.currentState.stageDoneStatus);
+                }
               }
               
               if (data.isReconnection) {
@@ -206,7 +212,12 @@ export default function RetroBoard() {
               break;
             case 'stage-change':
               setCurrentStageIndex(data.stageIndex);
+              // Reset stage done status when stage changes
+              setStageDoneStatus({});
               toast(`Stage changed to ${enabledStages[data.stageIndex]?.name || 'next stage'}`);
+              break;
+            case 'stage-done-update':
+              setStageDoneStatus(data.stageDoneStatus);
               break;
             case 'creator-assigned':
               if (data.isCreator) {
@@ -565,6 +576,8 @@ export default function RetroBoard() {
                   retroId={retroId || ''}
                   cards={cards}
                   setCards={setCards}
+                  stageId="brainstorm"
+                  isDone={stageDoneStatus['brainstorm']?.includes(currentUserId) || false}
                 />
               </>
             )}
@@ -602,6 +615,8 @@ export default function RetroBoard() {
                   votingLimit={retro.votingLimit || 5}
                   votes={votes}
                   setVotes={setVotes}
+                  stageId="vote"
+                  isDone={stageDoneStatus['vote']?.includes(currentUserId) || false}
                 />
               </>
             )}
@@ -667,23 +682,25 @@ export default function RetroBoard() {
             )}
           </div>
 
-          {/* Navigation Buttons */}
-          <div className="flex justify-between mt-6">
-            <button
-              onClick={goToPreviousStage}
-              disabled={currentStageIndex === 0}
-              className="btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              ← Previous Stage
-            </button>
-            <button
-              onClick={goToNextStage}
-              disabled={currentStageIndex === enabledStages.length - 1}
-              className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Next Stage →
-            </button>
-          </div>
+          {/* Navigation Buttons - Only visible to room creator/admin */}
+          {participants.some(p => p.id === currentUserId && p.isCreator) && (
+            <div className="flex justify-between mt-6">
+              <button
+                onClick={goToPreviousStage}
+                disabled={currentStageIndex === 0}
+                className="btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                ← Previous Stage
+              </button>
+              <button
+                onClick={goToNextStage}
+                disabled={currentStageIndex === enabledStages.length - 1}
+                className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next Stage →
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Right Sidebar - Participants */}
@@ -692,6 +709,8 @@ export default function RetroBoard() {
           retroId={retroId || ''}
           currentUserId={currentUserId}
           creatorId={participants.find(p => p.isCreator)?.id || ''}
+          stageDoneStatus={stageDoneStatus}
+          currentStageId={currentStage?.id || ''}
         />
       </div>
     </div>

@@ -2,8 +2,6 @@ import { useState } from 'react';
 import { 
   FileText, 
   Download, 
-  Copy, 
-  CheckCircle2, 
   ThumbsUp, 
   MessageCircle, 
   Target, 
@@ -12,8 +10,7 @@ import {
   User,
   TrendingUp,
   BarChart3,
-  AlertCircle,
-  Printer
+  AlertCircle
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
@@ -88,13 +85,11 @@ export default function ReportStage({
   actionItems
 }: ReportStageProps) {
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
-  const [copied, setCopied] = useState(false);
 
   // Calculate statistics
   const totalCards = cards.length;
   const totalVotes = Object.values(votes).reduce((sum, voters) => sum + voters.length, 0);
   const totalActions = actionItems.length;
-  const completedActions = actionItems.filter(a => a.status === 'completed').length;
   const highPriorityActions = actionItems.filter(a => a.priority === 'high').length;
 
   // Get vote count for an item
@@ -540,68 +535,7 @@ export default function ReportStage({
     }
   };
 
-  // Copy report as text
-  const handleCopyReport = () => {
-    let reportText = `
-RETROSPECTIVE REPORT
-====================
 
-Session: ${retroName}
-Date: ${format(new Date(), 'MMMM d, yyyy')}
-Template: ${template?.name || 'Unknown'}
-Participants: ${participants.length}
-
-SUMMARY STATISTICS
-------------------
-• Total Cards: ${totalCards}
-• Total Votes: ${totalVotes}
-• Action Items: ${totalActions}
-• Completed Actions: ${completedActions}
-
-TOP VOTED ITEMS
----------------
-${topVotedItems.map((item, i) => `${i + 1}. [${getColumnInfo(item.columnId)?.name}] ${item.content} (${item.voteCount} votes)`).join('\n')}
-
-ACTION ITEMS
-------------
-${actionItems.length > 0 ? actionItems.map(action => 
-`• ${action.title}
-  Assignee: ${getAssigneeName(action.assigneeId)}
-  Priority: ${action.priority}
-  Due: ${action.dueDate ? format(new Date(action.dueDate), 'MMM d, yyyy') : 'Not set'}
-  Status: ${action.status.replace('_', ' ')}`
-).join('\n\n') : 'No action items'}
-
-FEEDBACK BY CATEGORY
---------------------
-${template?.columns.map(col => {
-  const colCards = columnData[col.id]?.cards || [];
-  const colGroups = columnData[col.id]?.groups || [];
-  const allItems = [
-    ...colCards.map(c => `  - ${c.content} (${getVoteCount(c.id)} votes)`),
-    ...colGroups.map(g => `  - [Group] ${g.cards.map(c => c.content).join(' | ')} (${g.voteCount} votes)`)
-  ];
-  return `${col.name}:\n${allItems.length > 0 ? allItems.join('\n') : '  No items'}`;
-}).join('\n\n')}
-
-PARTICIPANTS
-------------
-${participants.map(p => `• ${p.name}${p.isCreator ? ' (Facilitator)' : ''}`).join('\n')}
-    `.trim();
-
-    navigator.clipboard.writeText(reportText).then(() => {
-      setCopied(true);
-      toast.success('Report copied to clipboard!');
-      setTimeout(() => setCopied(false), 2000);
-    }).catch(() => {
-      toast.error('Failed to copy report');
-    });
-  };
-
-  // Print report
-  const handlePrint = () => {
-    window.print();
-  };
 
   if (!template) {
     return (
@@ -628,20 +562,6 @@ ${participants.map(p => `• ${p.name}${p.isCreator ? ' (Facilitator)' : ''}`).j
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              onClick={handleCopyReport}
-              className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-            >
-              {copied ? <CheckCircle2 className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
-              {copied ? 'Copied!' : 'Copy'}
-            </button>
-            <button
-              onClick={handlePrint}
-              className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-            >
-              <Printer className="w-4 h-4" />
-              Print
-            </button>
             <button
               onClick={handleDownloadPdf}
               disabled={isGeneratingPdf}

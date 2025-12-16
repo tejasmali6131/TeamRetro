@@ -49,6 +49,8 @@ interface RetroRoom {
   votes: { [itemId: string]: string[] };
   actionItems: ActionItem[];
   discussedItems: string[];
+  // Track which users are done with each stage (stageId -> userId[])
+  stageDoneStatus: { [stageId: string]: string[] };
 }
 
 // Store for disconnected users (to allow reconnection within a time window)
@@ -115,7 +117,8 @@ class WebSocketManager {
         cardGroups: [],
         votes: {},
         actionItems: [],
-        discussedItems: []
+        discussedItems: [],
+        stageDoneStatus: {}
       });
     } else {
       console.log(`Room ${retroId} already exists`);
@@ -204,7 +207,8 @@ class WebSocketManager {
         cardGroups: room.cardGroups,
         votes: room.votes,
         actionItems: room.actionItems,
-        discussedItems: room.discussedItems
+        discussedItems: room.discussedItems,
+        stageDoneStatus: room.stageDoneStatus
       }
     }));
 
@@ -236,11 +240,38 @@ class WebSocketManager {
           // Only creator can change stages
           if (room.creatorId === userId) {
             room.currentStage = data.stageIndex;
+            // Reset stage done status when stage changes
+            room.stageDoneStatus = {};
             this.broadcastToRoom(retroId, {
               type: 'stage-change',
               stageIndex: data.stageIndex
             }, userId);
           }
+          break;
+
+        case 'mark-stage-done':
+          // Track user's done status for a stage
+          const stageId = data.stageId;
+          const isDone = data.isDone;
+          
+          if (!room.stageDoneStatus[stageId]) {
+            room.stageDoneStatus[stageId] = [];
+          }
+          
+          if (isDone && !room.stageDoneStatus[stageId].includes(userId)) {
+            room.stageDoneStatus[stageId].push(userId);
+          } else if (!isDone) {
+            room.stageDoneStatus[stageId] = room.stageDoneStatus[stageId].filter(id => id !== userId);
+          }
+          
+          // Broadcast to all participants (including sender)
+          this.broadcastToRoom(retroId, {
+            type: 'stage-done-update',
+            stageId,
+            userId,
+            isDone,
+            stageDoneStatus: room.stageDoneStatus
+          });
           break;
 
         case 'timer-update':

@@ -1,4 +1,4 @@
-import { Users, Link as LinkIcon, Crown } from 'lucide-react';
+import { Users, Link as LinkIcon, Crown, CheckCircle2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface Participant {
@@ -13,15 +13,27 @@ interface ParticipantsSidebarProps {
   retroId: string;
   currentUserId: string;
   creatorId: string;
+  stageDoneStatus?: { [stageId: string]: string[] };
+  currentStageId?: string;
 }
 
 export default function ParticipantsSidebar({ 
   participants, 
   retroId, 
   currentUserId,
-  creatorId 
+  creatorId,
+  stageDoneStatus = {},
+  currentStageId = ''
 }: ParticipantsSidebarProps) {
   const isCurrentUserCreator = currentUserId === creatorId;
+  
+  // Check if user is done with the current stage (only for brainstorm and vote stages)
+  const isUserDone = (userId: string): boolean => {
+    if (!currentStageId || (currentStageId !== 'brainstorm' && currentStageId !== 'vote')) {
+      return false;
+    }
+    return stageDoneStatus[currentStageId]?.includes(userId) || false;
+  };
 
   const copyRetroLink = () => {
     const link = `${window.location.origin}/retro/${retroId}`;
@@ -47,6 +59,7 @@ export default function ParticipantsSidebar({
             participants.map((participant) => {
               const isCreator = participant.id === creatorId;
               const isCurrentUser = participant.id === currentUserId;
+              const isDone = isUserDone(participant.id);
               
               return (
                 <div
@@ -73,9 +86,12 @@ export default function ParticipantsSidebar({
                       {isCreator && (
                         <Crown className="w-4 h-4 text-yellow-500" aria-label="Room Creator" />
                       )}
+                      {isDone && (
+                        <CheckCircle2 className="w-4 h-4 text-green-500" aria-label="Done" />
+                      )}
                     </div>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {isCreator ? 'Facilitator' : 'Online'}
+                      {isDone ? 'Done' : (isCreator ? 'Facilitator' : 'Online')}
                     </p>
                   </div>
                 </div>

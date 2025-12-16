@@ -1,4 +1,5 @@
-import { Plus, Minus, Award, AlertCircle, ThumbsUp } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, Minus, Award, AlertCircle, ThumbsUp, CheckCircle2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface Template {
@@ -42,6 +43,8 @@ interface VoteStageProps {
   votingLimit: number;
   votes: VoteData;
   setVotes: React.Dispatch<React.SetStateAction<VoteData>>;
+  stageId: string;
+  isDone: boolean;
 }
 
 export default function VoteStage({ 
@@ -53,8 +56,28 @@ export default function VoteStage({
   cardGroups,
   votingLimit,
   votes,
-  setVotes
+  setVotes,
+  stageId,
+  isDone
 }: VoteStageProps) {
+  const [localIsDone, setLocalIsDone] = useState(isDone);
+
+  // Sync local state with prop
+  useEffect(() => {
+    setLocalIsDone(isDone);
+  }, [isDone]);
+
+  const handleToggleDone = () => {
+    if (!ws) return;
+    const newDoneState = !localIsDone;
+    setLocalIsDone(newDoneState);
+    ws.send(JSON.stringify({
+      type: 'mark-stage-done',
+      retroId,
+      stageId,
+      isDone: newDoneState
+    }));
+  };
   
   // Calculate user's total votes used
   const getUserVotesUsed = (): number => {
@@ -210,6 +233,21 @@ export default function VoteStage({
 
   return (
     <div className="space-y-6">
+      {/* Done Button */}
+      <div className="flex justify-end">
+        <button
+          onClick={handleToggleDone}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors border-2 min-w-[150px] justify-center ${
+            localIsDone
+              ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-500'
+              : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 border-transparent'
+          }`}
+        >
+          <CheckCircle2 className={`w-5 h-5 ${localIsDone ? 'text-green-500' : 'text-gray-400'}`} />
+          {localIsDone ? 'Done' : 'Mark as Done'}
+        </button>
+      </div>
+
       {/* Vote Info Banner */}
       <div className="bg-gradient-to-r from-kone-blue/10 to-indigo-100 dark:from-kone-blue/20 dark:to-indigo-900/30 rounded-xl p-4 border border-kone-blue/20 dark:border-kone-lightBlue/30">
         <div className="flex items-center justify-between flex-wrap gap-4">

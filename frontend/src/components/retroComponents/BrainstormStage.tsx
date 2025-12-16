@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, Edit2, Check, EyeOff } from 'lucide-react';
+import { X, Edit2, Check, EyeOff, CheckCircle2 } from 'lucide-react';
 
 interface Template {
   id: string;
@@ -28,15 +28,23 @@ interface BrainstormStageProps {
   retroId: string;
   cards: Card[];
   setCards: React.Dispatch<React.SetStateAction<Card[]>>;
+  stageId: string;
+  isDone: boolean;
 }
 
-export default function BrainstormStage({ template, currentUserId, ws, retroId, cards, setCards }: BrainstormStageProps) {
+export default function BrainstormStage({ template, currentUserId, ws, retroId, cards, setCards, stageId, isDone }: BrainstormStageProps) {
   const [activeInput, setActiveInput] = useState<string | null>(null);
   const [inputValue, setInputValue] = useState('');
   const [editingCardId, setEditingCardId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
+  const [localIsDone, setLocalIsDone] = useState(isDone);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const editInputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Sync local state with prop
+  useEffect(() => {
+    setLocalIsDone(isDone);
+  }, [isDone]);
 
   // Focus input when opening
   useEffect(() => {
@@ -55,6 +63,18 @@ export default function BrainstormStage({ template, currentUserId, ws, retroId, 
   const handleAddCard = (columnId: string) => {
     setActiveInput(columnId);
     setInputValue('');
+  };
+
+  const handleToggleDone = () => {
+    if (!ws) return;
+    const newDoneState = !localIsDone;
+    setLocalIsDone(newDoneState);
+    ws.send(JSON.stringify({
+      type: 'mark-stage-done',
+      retroId,
+      stageId,
+      isDone: newDoneState
+    }));
   };
 
   const handleSubmitCard = (columnId: string) => {
@@ -153,16 +173,32 @@ export default function BrainstormStage({ template, currentUserId, ws, retroId, 
   }
 
   return (
-    <div className="overflow-x-auto overflow-y-hidden">
-      <div className="flex gap-4 pb-2" style={{ width: 'max-content' }}>
-        {template.columns.map((column) => {
-          const columnCards = getCardsForColumn(column.id);
-          
-          return (
-            <div
-              key={column.id}
-              className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 min-h-[400px] flex-shrink-0"
-              style={{ width: '280px' }}
+    <div className="space-y-4">
+      {/* Done Button */}
+      <div className="flex justify-end">
+        <button
+          onClick={handleToggleDone}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors border-2 min-w-[150px] justify-center ${
+            localIsDone
+              ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-500'
+              : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 border-transparent'
+          }`}
+        >
+          <CheckCircle2 className={`w-5 h-5 ${localIsDone ? 'text-green-500' : 'text-gray-400'}`} />
+          {localIsDone ? 'Done' : 'Mark as Done'}
+        </button>
+      </div>
+      
+      <div className="overflow-x-auto overflow-y-hidden">
+        <div className="flex gap-4 pb-2" style={{ width: 'max-content' }}>
+          {template.columns.map((column) => {
+            const columnCards = getCardsForColumn(column.id);
+            
+            return (
+              <div
+                key={column.id}
+                className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 min-h-[400px] flex-shrink-0"
+                style={{ width: '280px' }}
             >
               {/* Column Header */}
               <div
@@ -305,6 +341,7 @@ export default function BrainstormStage({ template, currentUserId, ws, retroId, 
             </div>
           );
         })}
+        </div>
       </div>
     </div>
   );
