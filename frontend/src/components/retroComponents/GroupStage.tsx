@@ -58,11 +58,12 @@ export default function GroupStage({
   const [draggedCardId, setDraggedCardId] = useState<string | null>(null);
   const [dragOverCardId, setDragOverCardId] = useState<string | null>(null);
   const [showEmojiPickerFor, setShowEmojiPickerFor] = useState<string | null>(null);
+  const [emojiPickerPosition, setEmojiPickerPosition] = useState<{ top: number; left: number } | null>(null);
   const dragCounter = useRef(0);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
 
   // Quick reaction emojis
-  const quickEmojis = ['👍', '❤️', '😊', '🎉', '🤔', '👏'];
+  const quickEmojis = ['👍', '👎', '❤️', '😊', '🎉', '👏'];
 
   // Close emoji picker when clicking outside
   useEffect(() => {
@@ -74,6 +75,16 @@ export default function GroupStage({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  const openEmojiPicker = (cardId: string, event: React.MouseEvent) => {
+    event.stopPropagation();
+    const rect = (event.target as HTMLElement).getBoundingClientRect();
+    setEmojiPickerPosition({
+      top: rect.top,
+      left: rect.right + 8
+    });
+    setShowEmojiPickerFor(showEmojiPickerFor === cardId ? null : cardId);
+  };
 
   const handleAddReaction = (cardId: string, emoji: string) => {
     if (!ws) return;
@@ -88,6 +99,7 @@ export default function GroupStage({
     }));
 
     setShowEmojiPickerFor(null);
+    setEmojiPickerPosition(null);
   };
 
   const getCardReactions = (cardId: string): { emoji: string; count: number; hasReacted: boolean }[] => {
@@ -415,24 +427,18 @@ export default function GroupStage({
                                         <span className="text-gray-600 dark:text-gray-300">{count}</span>
                                       </button>
                                     ))}
-                                    <div className="relative" ref={showEmojiPickerFor === groupedCard.id ? emojiPickerRef : null}>
+                                    <div ref={showEmojiPickerFor === groupedCard.id ? emojiPickerRef : null}>
                                       <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          setShowEmojiPickerFor(showEmojiPickerFor === groupedCard.id ? null : groupedCard.id);
-                                        }}
+                                        onClick={(e) => openEmojiPicker(groupedCard.id, e)}
                                         className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-600"
                                         title="Add reaction"
                                       >
                                         <Smile className="w-3.5 h-3.5" />
                                       </button>
-                                      {showEmojiPickerFor === groupedCard.id && (
-                                        <div className="fixed z-[9999] bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-600 p-2"
-                                          style={{
-                                            top: '50%',
-                                            left: '50%',
-                                            transform: 'translate(-50%, -50%)'
-                                          }}
+                                      {showEmojiPickerFor === groupedCard.id && emojiPickerPosition && (
+                                        <div 
+                                          className="fixed z-[9999] bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-600 p-2"
+                                          style={{ top: emojiPickerPosition.top, left: emojiPickerPosition.left }}
                                         >
                                           <div className="flex gap-2">
                                             {quickEmojis.map(emoji => (
@@ -482,24 +488,18 @@ export default function GroupStage({
                                 <span className="text-gray-600 dark:text-gray-300">{count}</span>
                               </button>
                             ))}
-                            <div className="relative" ref={showEmojiPickerFor === card.id ? emojiPickerRef : null}>
+                            <div ref={showEmojiPickerFor === card.id ? emojiPickerRef : null}>
                               <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setShowEmojiPickerFor(showEmojiPickerFor === card.id ? null : card.id);
-                                }}
+                                onClick={(e) => openEmojiPicker(card.id, e)}
                                 className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-600"
                                 title="Add reaction"
                               >
                                 <Smile className="w-3.5 h-3.5" />
                               </button>
-                              {showEmojiPickerFor === card.id && (
-                                <div className="fixed z-[9999] bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-600 p-2"
-                                  style={{
-                                    top: '50%',
-                                    left: '50%',
-                                    transform: 'translate(-50%, -50%)'
-                                  }}
+                              {showEmojiPickerFor === card.id && emojiPickerPosition && (
+                                <div 
+                                  className="fixed z-[9999] bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-600 p-2"
+                                  style={{ top: emojiPickerPosition.top, left: emojiPickerPosition.left }}
                                 >
                                   <div className="flex gap-2">
                                     {quickEmojis.map(emoji => (

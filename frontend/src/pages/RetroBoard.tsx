@@ -112,6 +112,15 @@ export default function RetroBoard() {
   // Card reactions - cardId -> { emoji: userId[] }
   const [reactions, setReactions] = useState<{ [cardId: string]: { [emoji: string]: string[] } }>({});
   
+  // Icebreaker state - persisted across refreshes
+  const [icebreakerState, setIcebreakerState] = useState<{
+    currentQuestionIndex: number;
+    questions: string[];
+    isAnswering: boolean;
+    answeredParticipants: string[];
+    answers: { [participantId: string]: string };
+  } | null>(null);
+  
   // Default stages if not provided by backend - Added Icebreaker stage
   const defaultStages: RetroStage[] = [
     { id: 'icebreaker', name: 'Icebreaker', duration: 0, enabled: true },
@@ -195,6 +204,9 @@ export default function RetroBoard() {
                 }
                 if (data.currentState.reactions) {
                   setReactions(data.currentState.reactions);
+                }
+                if (data.currentState.icebreakerState) {
+                  setIcebreakerState(data.currentState.icebreakerState);
                 }
               }
               
@@ -570,6 +582,7 @@ export default function RetroBoard() {
                 currentUserId={currentUserId}
                 isRoomCreator={participants.some(p => p.id === currentUserId && p.isCreator)}
                 ws={ws}
+                initialState={icebreakerState || undefined}
               />
             )}
 
@@ -704,8 +717,19 @@ export default function RetroBoard() {
               </button>
               <button
                 onClick={goToNextStage}
-                disabled={currentStageIndex === enabledStages.length - 1}
+                disabled={
+                  currentStageIndex === enabledStages.length - 1 ||
+                  // Disable Next for brainstorm/vote stages until everyone is done
+                  ((currentStage?.id === 'brainstorm' || currentStage?.id === 'vote') && 
+                   (stageDoneStatus[currentStage.id]?.length || 0) < participants.length)
+                }
                 className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                title={
+                  (currentStage?.id === 'brainstorm' || currentStage?.id === 'vote') && 
+                  (stageDoneStatus[currentStage.id]?.length || 0) < participants.length
+                    ? `Waiting for ${participants.length - (stageDoneStatus[currentStage.id]?.length || 0)} participants to finish`
+                    : undefined
+                }
               >
                 Next Stage →
               </button>

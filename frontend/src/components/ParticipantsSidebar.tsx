@@ -80,7 +80,14 @@ export default function ParticipantsSidebar({
 
         <div className="space-y-2 max-h-[calc(100vh-300px)] overflow-y-auto">
           {participants.length > 0 ? (
-            participants.map((participant) => {
+            // Sort participants: current user first, then others
+            [...participants]
+              .sort((a, b) => {
+                if (a.id === currentUserId) return -1;
+                if (b.id === currentUserId) return 1;
+                return 0;
+              })
+              .map((participant) => {
               const isCreator = participant.id === creatorId;
               const isCurrentUser = participant.id === currentUserId;
               const isDone = isUserDone(participant.id);
@@ -95,7 +102,7 @@ export default function ParticipantsSidebar({
                   }`}
                 >
                   <div className={`w-10 h-10 text-white rounded-full flex items-center justify-center font-semibold ${
-                    isCreator 
+                    isCreator && isCurrentUser
                       ? 'bg-gradient-to-br from-yellow-400 to-orange-500' 
                       : 'bg-kone-blue dark:bg-kone-lightBlue'
                   }`}>
@@ -107,7 +114,7 @@ export default function ParticipantsSidebar({
                         {participant.name}
                         {isCurrentUser && ' (You)'}
                       </p>
-                      {isCreator && (
+                      {isCreator && isCurrentUser && (
                         <Crown className="w-4 h-4 text-yellow-500" aria-label="Room Creator" />
                       )}
                       {isDone && (
@@ -115,7 +122,7 @@ export default function ParticipantsSidebar({
                       )}
                     </div>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {isDone ? 'Done' : (isCreator ? 'Facilitator' : 'Online')}
+                      {isDone ? 'Done' : 'Online'}
                     </p>
                   </div>
                 </div>

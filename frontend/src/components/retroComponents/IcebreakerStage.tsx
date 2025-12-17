@@ -8,11 +8,20 @@ interface Participant {
   name: string;
 }
 
+interface IcebreakerState {
+  currentQuestionIndex: number;
+  questions: string[];
+  isAnswering: boolean;
+  answeredParticipants: string[];
+  answers: { [participantId: string]: string };
+}
+
 interface IcebreakerStageProps {
   participants: Participant[];
   currentUserId: string;
   isRoomCreator: boolean;
   ws: WebSocket | null;
+  initialState?: IcebreakerState;
 }
 
 const defaultQuestions = [
@@ -24,15 +33,28 @@ const defaultQuestions = [
   "If you could have dinner with anyone, dead or alive, who would it be?"
 ];
 
-export default function IcebreakerStage({ participants, currentUserId, isRoomCreator, ws }: IcebreakerStageProps) {
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [questions, setQuestions] = useState<string[]>(defaultQuestions);
+export default function IcebreakerStage({ participants, currentUserId, isRoomCreator, ws, initialState }: IcebreakerStageProps) {
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(initialState?.currentQuestionIndex ?? 0);
+  const [questions, setQuestions] = useState<string[]>(initialState?.questions ?? defaultQuestions);
   const [isEditingQuestion, setIsEditingQuestion] = useState(false);
   const [editedQuestion, setEditedQuestion] = useState('');
-  const [isAnswering, setIsAnswering] = useState(false);
-  const [answeredParticipants, setAnsweredParticipants] = useState<Set<string>>(new Set());
+  const [isAnswering, setIsAnswering] = useState(initialState?.isAnswering ?? false);
+  const [answeredParticipants, setAnsweredParticipants] = useState<Set<string>>(new Set(initialState?.answeredParticipants ?? []));
   const [participantAnswer, setParticipantAnswer] = useState('');
-  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [answers, setAnswers] = useState<Record<string, string>>(initialState?.answers ?? {});
+  const [hasInitialized, setHasInitialized] = useState(false);
+
+  // Update state when initialState prop changes (for reconnection/refresh)
+  useEffect(() => {
+    if (initialState && !hasInitialized) {
+      setCurrentQuestionIndex(initialState.currentQuestionIndex);
+      setQuestions(initialState.questions);
+      setIsAnswering(initialState.isAnswering);
+      setAnsweredParticipants(new Set(initialState.answeredParticipants));
+      setAnswers(initialState.answers);
+      setHasInitialized(true);
+    }
+  }, [initialState, hasInitialized]);
 
   // Refs for textareas so we can insert emojis at caret
   const editTextareaRef = useRef<HTMLTextAreaElement | null>(null);

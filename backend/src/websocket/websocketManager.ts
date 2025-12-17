@@ -53,6 +53,14 @@ interface RetroRoom {
   stageDoneStatus: { [stageId: string]: string[] };
   // Card reactions: cardId -> { emoji: userId[] }
   reactions: { [cardId: string]: { [emoji: string]: string[] } };
+  // Icebreaker state
+  icebreakerState: {
+    currentQuestionIndex: number;
+    questions: string[];
+    isAnswering: boolean;
+    answeredParticipants: string[];
+    answers: { [participantId: string]: string };
+  };
 }
 
 // Store for disconnected users (to allow reconnection within a time window)
@@ -121,7 +129,21 @@ class WebSocketManager {
         actionItems: [],
         discussedItems: [],
         stageDoneStatus: {},
-        reactions: {}
+        reactions: {},
+        icebreakerState: {
+          currentQuestionIndex: 0,
+          questions: [
+            "How would you describe your current mood?",
+            "What is one movie or series that you'd watch again and again?",
+            "What's your favorite way to spend a weekend?",
+            "What's one skill you'd love to learn?",
+            "What's your go-to comfort food?",
+            "If you could have dinner with anyone, dead or alive, who would it be?"
+          ],
+          isAnswering: false,
+          answeredParticipants: [],
+          answers: {}
+        }
       });
     } else {
       console.log(`Room ${retroId} already exists`);
@@ -212,7 +234,8 @@ class WebSocketManager {
         actionItems: room.actionItems,
         discussedItems: room.discussedItems,
         stageDoneStatus: room.stageDoneStatus,
-        reactions: room.reactions
+        reactions: room.reactions,
+        icebreakerState: room.icebreakerState
       }
     }));
 
@@ -289,6 +312,32 @@ class WebSocketManager {
           break;
 
         case 'icebreaker-update':
+          // Store icebreaker state based on action
+          switch (data.action) {
+            case 'answering-started':
+              room.icebreakerState.isAnswering = true;
+              break;
+            case 'answer-completed':
+              if (data.participantId && !room.icebreakerState.answeredParticipants.includes(data.participantId)) {
+                room.icebreakerState.answeredParticipants.push(data.participantId);
+              }
+              if (data.participantId && data.answer) {
+                room.icebreakerState.answers[data.participantId] = data.answer;
+              }
+              break;
+            case 'question-changed':
+              room.icebreakerState.currentQuestionIndex = data.questionIndex;
+              room.icebreakerState.isAnswering = false;
+              room.icebreakerState.answeredParticipants = [];
+              room.icebreakerState.answers = {};
+              break;
+            case 'question-edited':
+              if (data.questionIndex !== undefined && data.newQuestion) {
+                room.icebreakerState.questions[data.questionIndex] = data.newQuestion;
+              }
+              break;
+          }
+          
           // Broadcast icebreaker updates to all participants (including sender)
           this.broadcastToRoom(retroId, {
             type: 'icebreaker-update',
