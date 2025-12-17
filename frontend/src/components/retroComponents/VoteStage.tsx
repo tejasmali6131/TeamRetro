@@ -240,10 +240,10 @@ export default function VoteStage({
           className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors border-2 min-w-[150px] justify-center ${
             localIsDone
               ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-500'
-              : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 border-transparent'
+              : 'bg-kone-blue/10 dark:bg-kone-blue/20 text-kone-blue dark:text-kone-lightBlue hover:bg-kone-blue/20 dark:hover:bg-kone-blue/30 border-kone-blue dark:border-kone-lightBlue'
           }`}
         >
-          <CheckCircle2 className={`w-5 h-5 ${localIsDone ? 'text-green-500' : 'text-gray-400'}`} />
+          <CheckCircle2 className={`w-5 h-5 ${localIsDone ? 'text-green-500' : 'text-kone-blue dark:text-kone-lightBlue'}`} />
           {localIsDone ? 'Done' : 'Mark as Done'}
         </button>
       </div>
@@ -376,7 +376,7 @@ export default function VoteStage({
                         }`}
                       >
                         {/* Card Content */}
-                        <div className="mb-3">
+                        <div className="mb-3 overflow-hidden">
                           {item.type === 'group' ? (
                             <div className="space-y-2">
                               <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 mb-2">
@@ -387,7 +387,7 @@ export default function VoteStage({
                               {item.cards.map((card, idx) => (
                                 <div 
                                   key={card.id}
-                                  className={`text-sm text-gray-800 dark:text-gray-200 ${
+                                  className={`text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-all ${
                                     idx > 0 ? 'pt-2 border-t border-gray-200 dark:border-gray-500' : ''
                                   }`}
                                 >
@@ -396,7 +396,7 @@ export default function VoteStage({
                               ))}
                             </div>
                           ) : (
-                            <p className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-words">
+                            <p className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-all">
                               {item.cards[0]?.content}
                             </p>
                           )}

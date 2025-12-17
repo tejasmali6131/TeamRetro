@@ -424,19 +424,19 @@ export default function DiscussStage({
                   {currentItem.cards.map((card, idx) => (
                     <div 
                       key={card.id}
-                      className={`p-4 bg-gray-50 dark:bg-gray-700 rounded-lg ${
+                      className={`p-4 bg-gray-50 dark:bg-gray-700 rounded-lg overflow-hidden ${
                         idx > 0 ? 'border-t-2 border-gray-200 dark:border-gray-600' : ''
                       }`}
                     >
-                      <p className="text-lg text-gray-800 dark:text-gray-200 whitespace-pre-wrap">
+                      <p className="text-lg text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-all">
                         {card.content}
                       </p>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="p-6 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                  <p className="text-xl text-gray-800 dark:text-gray-200 whitespace-pre-wrap text-center">
+                <div className="p-6 bg-gray-50 dark:bg-gray-700 rounded-lg overflow-hidden">
+                  <p className="text-xl text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-all text-center">
                     {currentItem?.cards[0]?.content}
                   </p>
                 </div>

@@ -181,10 +181,10 @@ export default function BrainstormStage({ template, currentUserId, ws, retroId, 
           className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors border-2 min-w-[150px] justify-center ${
             localIsDone
               ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-500'
-              : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 border-transparent'
+              : 'bg-kone-blue/10 dark:bg-kone-blue/20 text-kone-blue dark:text-kone-lightBlue hover:bg-kone-blue/20 dark:hover:bg-kone-blue/30 border-kone-blue dark:border-kone-lightBlue'
           }`}
         >
-          <CheckCircle2 className={`w-5 h-5 ${localIsDone ? 'text-green-500' : 'text-gray-400'}`} />
+          <CheckCircle2 className={`w-5 h-5 ${localIsDone ? 'text-green-500' : 'text-kone-blue dark:text-kone-lightBlue'}`} />
           {localIsDone ? 'Done' : 'Mark as Done'}
         </button>
       </div>
@@ -263,10 +263,10 @@ export default function BrainstormStage({ template, currentUserId, ws, retroId, 
                           </div>
                         </div>
                       ) : (
-                        <div>
+                        <div className="overflow-hidden">
                           {isOwner ? (
                             <>
-                              <p className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-words">
+                              <p className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-all">
                                 {card.content}
                               </p>
                               <div className="flex justify-end gap-1 mt-2 opacity-0 hover:opacity-100 transition-opacity">

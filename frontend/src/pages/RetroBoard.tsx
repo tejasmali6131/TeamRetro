@@ -109,6 +109,9 @@ export default function RetroBoard() {
   // Stage done status - tracks which users are done with each stage
   const [stageDoneStatus, setStageDoneStatus] = useState<{ [stageId: string]: string[] }>({});
   
+  // Card reactions - cardId -> { emoji: userId[] }
+  const [reactions, setReactions] = useState<{ [cardId: string]: { [emoji: string]: string[] } }>({});
+  
   // Default stages if not provided by backend - Added Icebreaker stage
   const defaultStages: RetroStage[] = [
     { id: 'icebreaker', name: 'Icebreaker', duration: 0, enabled: true },
@@ -190,6 +193,9 @@ export default function RetroBoard() {
                 if (data.currentState.stageDoneStatus) {
                   setStageDoneStatus(data.currentState.stageDoneStatus);
                 }
+                if (data.currentState.reactions) {
+                  setReactions(data.currentState.reactions);
+                }
               }
               
               if (data.isReconnection) {
@@ -218,6 +224,9 @@ export default function RetroBoard() {
               break;
             case 'stage-done-update':
               setStageDoneStatus(data.stageDoneStatus);
+              break;
+            case 'reaction-update':
+              setReactions(data.reactions);
               break;
             case 'creator-assigned':
               if (data.isCreator) {
@@ -596,6 +605,7 @@ export default function RetroBoard() {
                   setCards={setCards}
                   cardGroups={cardGroups}
                   setCardGroups={setCardGroups}
+                  reactions={reactions}
                 />
               </>
             )}

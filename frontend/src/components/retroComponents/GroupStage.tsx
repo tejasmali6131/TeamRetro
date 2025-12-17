@@ -1,5 +1,5 @@
-import { useState, useRef } from 'react';
-import { Layers, X } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Layers, X, Smile } from 'lucide-react';
 
 interface Template {
   id: string;
@@ -27,6 +27,11 @@ interface CardGroup {
   columnId: string;
 }
 
+// Reactions: cardId -> { emoji: userId[] }
+interface CardReactions {
+  [cardId: string]: { [emoji: string]: string[] };
+}
+
 interface GroupStageProps {
   template: Template | undefined;
   currentUserId: string;
@@ -36,20 +41,65 @@ interface GroupStageProps {
   setCards: React.Dispatch<React.SetStateAction<Card[]>>;
   cardGroups: CardGroup[];
   setCardGroups: React.Dispatch<React.SetStateAction<CardGroup[]>>;
+  reactions: CardReactions;
 }
 
 export default function GroupStage({ 
   template, 
+  currentUserId,
   ws, 
   retroId, 
   cards, 
   setCards,
   cardGroups,
-  setCardGroups 
+  setCardGroups,
+  reactions
 }: GroupStageProps) {
   const [draggedCardId, setDraggedCardId] = useState<string | null>(null);
   const [dragOverCardId, setDragOverCardId] = useState<string | null>(null);
+  const [showEmojiPickerFor, setShowEmojiPickerFor] = useState<string | null>(null);
   const dragCounter = useRef(0);
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
+
+  // Quick reaction emojis
+  const quickEmojis = ['👍', '❤️', '😊', '🎉', '🤔', '👏'];
+
+  // Close emoji picker when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
+        setShowEmojiPickerFor(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleAddReaction = (cardId: string, emoji: string) => {
+    if (!ws) return;
+
+    // Send to server - server will broadcast back to all including us
+    ws.send(JSON.stringify({
+      type: 'reaction-toggle',
+      retroId,
+      cardId,
+      emoji,
+      userId: currentUserId
+    }));
+
+    setShowEmojiPickerFor(null);
+  };
+
+  const getCardReactions = (cardId: string): { emoji: string; count: number; hasReacted: boolean }[] => {
+    const cardReactions = reactions[cardId] || {};
+    return Object.entries(cardReactions)
+      .filter(([, users]) => users.length > 0)
+      .map(([emoji, users]) => ({
+        emoji,
+        count: users.length,
+        hasReacted: users.includes(currentUserId)
+      }));
+  };
 
   const getCardsForColumn = (columnId: string) => {
     return cards.filter(card => card.columnId === columnId);
@@ -324,33 +374,152 @@ export default function GroupStage({
                             </span>
                           </div>
                           <div className="space-y-2">
-                            {groupedCards.map((groupedCard) => (
-                              <div 
-                                key={groupedCard.id}
-                                className="flex items-start gap-2 p-2 bg-gray-50 dark:bg-gray-700 rounded text-sm"
-                              >
-                                <span className="flex-1 text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-words">
-                                  {groupedCard.content}
-                                </span>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleUngroup(groupedCard.id);
-                                  }}
-                                  className="p-1 text-gray-400 hover:text-red-500 flex-shrink-0"
-                                  title="Remove from group"
+                            {groupedCards.map((groupedCard) => {
+                              const cardReactionList = getCardReactions(groupedCard.id);
+                              return (
+                                <div 
+                                  key={groupedCard.id}
+                                  className="p-2 bg-gray-50 dark:bg-gray-700 rounded text-sm overflow-hidden"
                                 >
-                                  <X className="w-3 h-3" />
-                                </button>
-                              </div>
-                            ))}
+                                  <div className="flex items-start gap-2">
+                                    <span className="flex-1 min-w-0 text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-all">
+                                      {groupedCard.content}
+                                    </span>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleUngroup(groupedCard.id);
+                                      }}
+                                      className="p-1 text-gray-400 hover:text-red-500 flex-shrink-0"
+                                      title="Remove from group"
+                                    >
+                                      <X className="w-3 h-3" />
+                                    </button>
+                                  </div>
+                                  {/* Reactions for grouped card */}
+                                  <div className="flex items-center gap-1 mt-2 flex-wrap">
+                                    {cardReactionList.map(({ emoji, count, hasReacted }) => (
+                                      <button
+                                        key={emoji}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleAddReaction(groupedCard.id, emoji);
+                                        }}
+                                        className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs transition-colors ${
+                                          hasReacted
+                                            ? 'bg-kone-blue/20 dark:bg-kone-lightBlue/20 border border-kone-blue dark:border-kone-lightBlue'
+                                            : 'bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500'
+                                        }`}
+                                      >
+                                        <span>{emoji}</span>
+                                        <span className="text-gray-600 dark:text-gray-300">{count}</span>
+                                      </button>
+                                    ))}
+                                    <div className="relative" ref={showEmojiPickerFor === groupedCard.id ? emojiPickerRef : null}>
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setShowEmojiPickerFor(showEmojiPickerFor === groupedCard.id ? null : groupedCard.id);
+                                        }}
+                                        className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-600"
+                                        title="Add reaction"
+                                      >
+                                        <Smile className="w-3.5 h-3.5" />
+                                      </button>
+                                      {showEmojiPickerFor === groupedCard.id && (
+                                        <div className="fixed z-[9999] bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-600 p-2"
+                                          style={{
+                                            top: '50%',
+                                            left: '50%',
+                                            transform: 'translate(-50%, -50%)'
+                                          }}
+                                        >
+                                          <div className="flex gap-2">
+                                            {quickEmojis.map(emoji => (
+                                              <button
+                                                key={emoji}
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  handleAddReaction(groupedCard.id, emoji);
+                                                }}
+                                                className="text-2xl hover:bg-gray-100 dark:hover:bg-gray-700 rounded p-2 transition-transform hover:scale-110"
+                                              >
+                                                {emoji}
+                                              </button>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
                           </div>
                         </div>
                       ) : (
                         // Single card display
-                        <p className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-words">
-                          {card.content}
-                        </p>
+                        <div className="overflow-hidden">
+                          <p className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-all">
+                            {card.content}
+                          </p>
+                          {/* Reactions for single card */}
+                          <div className="flex items-center gap-1 mt-2 flex-wrap">
+                            {getCardReactions(card.id).map(({ emoji, count, hasReacted }) => (
+                              <button
+                                key={emoji}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleAddReaction(card.id, emoji);
+                                }}
+                                className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs transition-colors ${
+                                  hasReacted
+                                    ? 'bg-kone-blue/20 dark:bg-kone-lightBlue/20 border border-kone-blue dark:border-kone-lightBlue'
+                                    : 'bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500'
+                                }`}
+                              >
+                                <span>{emoji}</span>
+                                <span className="text-gray-600 dark:text-gray-300">{count}</span>
+                              </button>
+                            ))}
+                            <div className="relative" ref={showEmojiPickerFor === card.id ? emojiPickerRef : null}>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setShowEmojiPickerFor(showEmojiPickerFor === card.id ? null : card.id);
+                                }}
+                                className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-600"
+                                title="Add reaction"
+                              >
+                                <Smile className="w-3.5 h-3.5" />
+                              </button>
+                              {showEmojiPickerFor === card.id && (
+                                <div className="fixed z-[9999] bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-600 p-2"
+                                  style={{
+                                    top: '50%',
+                                    left: '50%',
+                                    transform: 'translate(-50%, -50%)'
+                                  }}
+                                >
+                                  <div className="flex gap-2">
+                                    {quickEmojis.map(emoji => (
+                                      <button
+                                        key={emoji}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleAddReaction(card.id, emoji);
+                                        }}
+                                        className="text-2xl hover:bg-gray-100 dark:hover:bg-gray-700 rounded p-2 transition-transform hover:scale-110"
+                                      >
+                                        {emoji}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
                       )}
                     </div>
                   );

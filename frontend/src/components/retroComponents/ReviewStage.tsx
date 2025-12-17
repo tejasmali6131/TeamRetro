@@ -88,6 +88,7 @@ export default function ReviewStage({
   cardGroups,
   votes,
   participants,
+  isRoomCreator,
   actionItems,
   setActionItems
 }: ReviewStageProps) {
@@ -330,7 +331,7 @@ export default function ReviewStage({
                       {index + 1}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-gray-900 dark:text-gray-100 line-clamp-2">
+                      <p className="text-sm text-gray-900 dark:text-gray-100 line-clamp-2 break-all">
                         {item.content}
                       </p>
                       <div className="flex items-center gap-2 mt-1">
@@ -425,6 +426,7 @@ export default function ReviewStage({
                     <input
                       type="date"
                       value={newAction.dueDate || ''}
+                      min={new Date().toISOString().split('T')[0]}
                       onChange={(e) => setNewAction(prev => ({ ...prev, dueDate: e.target.value }))}
                       className="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                     />
@@ -475,6 +477,7 @@ export default function ReviewStage({
                   key={action.id}
                   action={action}
                   isEditing={editingActionId === action.id}
+                  canModify={isRoomCreator}
                   onEdit={() => setEditingActionId(action.id)}
                   onSave={handleUpdateAction}
                   onCancel={() => setEditingActionId(null)}
@@ -542,6 +545,7 @@ export default function ReviewStage({
 interface ActionItemCardProps {
   action: ActionItem;
   isEditing: boolean;
+  canModify: boolean;
   onEdit: () => void;
   onSave: (action: ActionItem) => void;
   onCancel: () => void;
@@ -555,6 +559,7 @@ interface ActionItemCardProps {
 function ActionItemCard({ 
   action, 
   isEditing, 
+  canModify,
   onEdit, 
   onSave, 
   onCancel, 
@@ -629,6 +634,7 @@ function ActionItemCard({
               <input
                 type="date"
                 value={editedAction.dueDate}
+                min={new Date().toISOString().split('T')[0]}
                 onChange={(e) => setEditedAction(prev => ({ ...prev, dueDate: e.target.value }))}
                 className="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm"
               />
@@ -678,7 +684,7 @@ function ActionItemCard({
               <User className="w-3 h-3" />
               {getAssigneeName(action.assigneeId)}
             </span>
-            {action.dueDate && (
+            {action.dueDate && action.dueDate !== '' && (
               <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
                 <Calendar className="w-3 h-3" />
                 {new Date(action.dueDate).toLocaleDateString()}
@@ -686,22 +692,24 @@ function ActionItemCard({
             )}
           </div>
         </div>
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button
-            onClick={onEdit}
-            className="p-1.5 text-gray-500 hover:text-kone-blue dark:hover:text-kone-lightBlue hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
-            title="Edit"
-          >
-            <Edit2 className="w-4 h-4" />
-          </button>
-          <button
-            onClick={onDelete}
-            className="p-1.5 text-gray-500 hover:text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors"
-            title="Delete"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-        </div>
+        {canModify && (
+          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button
+              onClick={onEdit}
+              className="p-1.5 text-gray-500 hover:text-kone-blue dark:hover:text-kone-lightBlue hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+              title="Edit"
+            >
+              <Edit2 className="w-4 h-4" />
+            </button>
+            <button
+              onClick={onDelete}
+              className="p-1.5 text-gray-500 hover:text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+              title="Delete"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

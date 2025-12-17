@@ -51,6 +51,8 @@ interface RetroRoom {
   discussedItems: string[];
   // Track which users are done with each stage (stageId -> userId[])
   stageDoneStatus: { [stageId: string]: string[] };
+  // Card reactions: cardId -> { emoji: userId[] }
+  reactions: { [cardId: string]: { [emoji: string]: string[] } };
 }
 
 // Store for disconnected users (to allow reconnection within a time window)
@@ -118,7 +120,8 @@ class WebSocketManager {
         votes: {},
         actionItems: [],
         discussedItems: [],
-        stageDoneStatus: {}
+        stageDoneStatus: {},
+        reactions: {}
       });
     } else {
       console.log(`Room ${retroId} already exists`);
@@ -208,7 +211,8 @@ class WebSocketManager {
         votes: room.votes,
         actionItems: room.actionItems,
         discussedItems: room.discussedItems,
-        stageDoneStatus: room.stageDoneStatus
+        stageDoneStatus: room.stageDoneStatus,
+        reactions: room.reactions
       }
     }));
 
@@ -436,6 +440,43 @@ class WebSocketManager {
             actionItem: data.actionItem,
             actionItemId: data.actionItemId
           }, userId);
+          break;
+
+        case 'reaction-toggle':
+          // Toggle reaction on a card
+          const { cardId, emoji } = data;
+          
+          if (!room.reactions[cardId]) {
+            room.reactions[cardId] = {};
+          }
+          if (!room.reactions[cardId][emoji]) {
+            room.reactions[cardId][emoji] = [];
+          }
+          
+          const emojiReactions = room.reactions[cardId][emoji];
+          const userIndex = emojiReactions.indexOf(userId);
+          
+          if (userIndex === -1) {
+            // Add reaction
+            emojiReactions.push(userId);
+          } else {
+            // Remove reaction
+            emojiReactions.splice(userIndex, 1);
+          }
+          
+          // Clean up empty arrays
+          if (emojiReactions.length === 0) {
+            delete room.reactions[cardId][emoji];
+          }
+          if (Object.keys(room.reactions[cardId]).length === 0) {
+            delete room.reactions[cardId];
+          }
+          
+          // Broadcast updated reactions to all participants
+          this.broadcastToRoom(retroId, {
+            type: 'reaction-update',
+            reactions: room.reactions
+          });
           break;
 
         default:

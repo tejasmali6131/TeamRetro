@@ -641,7 +641,7 @@ export default function ReportStage({
                       {index + 1}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-gray-900 dark:text-gray-100">
+                      <p className="text-sm text-gray-900 dark:text-gray-100 whitespace-pre-wrap break-all">
                         {item.content}
                       </p>
                       <div className="flex items-center gap-2 mt-1">
@@ -763,7 +763,7 @@ export default function ReportStage({
                         className="p-2 bg-white dark:bg-gray-800 rounded border-l-2 text-sm"
                         style={{ borderColor: column.color }}
                       >
-                        <p className="text-gray-700 dark:text-gray-300">{card.content}</p>
+                        <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-all">{card.content}</p>
                         <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-1">
                           <ThumbsUp className="w-3 h-3" />
                           {getVoteCount(card.id)}
@@ -780,7 +780,7 @@ export default function ReportStage({
                           <span className="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-600 rounded">Group</span>
                         </div>
                         {group.cards.map((card, i) => (
-                          <p key={card.id} className="text-gray-700 dark:text-gray-300">
+                          <p key={card.id} className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-all">
                             {i > 0 && <span className="text-gray-400 mx-1">•</span>}
                             {card.content}
                           </p>

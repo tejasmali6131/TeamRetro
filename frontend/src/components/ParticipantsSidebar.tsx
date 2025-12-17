@@ -54,6 +54,30 @@ export default function ParticipantsSidebar({
           </span>
         </div>
 
+        {/* Progress bar for admin - only show during brainstorm/vote stages */}
+        {isCurrentUserCreator && (currentStageId === 'brainstorm' || currentStageId === 'vote') && (
+          <div className="mb-4 p-3 bg-kone-blue/5 dark:bg-kone-blue/10 rounded-lg border border-kone-blue/20 dark:border-kone-lightBlue/20">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Progress</span>
+              <span className="text-sm font-bold text-kone-blue dark:text-kone-lightBlue">
+                {stageDoneStatus[currentStageId]?.length || 0} / {participants.length}
+              </span>
+            </div>
+            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+              <div
+                className="bg-kone-blue dark:bg-kone-lightBlue h-2.5 rounded-full transition-all duration-300"
+                style={{ width: `${participants.length > 0 ? ((stageDoneStatus[currentStageId]?.length || 0) / participants.length) * 100 : 0}%` }}
+              ></div>
+            </div>
+            {(stageDoneStatus[currentStageId]?.length || 0) === participants.length && participants.length > 0 && (
+              <div className="mt-2 flex items-center gap-1 text-green-600 dark:text-green-400">
+                <CheckCircle2 className="w-4 h-4" />
+                <span className="text-xs font-medium">All participants are done!</span>
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="space-y-2 max-h-[calc(100vh-300px)] overflow-y-auto">
           {participants.length > 0 ? (
             participants.map((participant) => {
