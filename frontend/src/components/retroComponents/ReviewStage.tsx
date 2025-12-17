@@ -150,37 +150,8 @@ export default function ReviewStage({
   const totalCards = cards.length;
   const totalVotes = Object.values(votes).reduce((sum, voters) => sum + voters.length, 0);
 
-  // Listen for WebSocket messages
-  useEffect(() => {
-    if (!ws) return;
-
-    const handleMessage = (event: MessageEvent) => {
-      try {
-        const data = JSON.parse(event.data);
-        
-        if (data.type === 'action-item-update') {
-          switch (data.action) {
-            case 'action-added':
-              setActionItems(prev => [...prev, data.actionItem]);
-              break;
-            case 'action-updated':
-              setActionItems(prev => prev.map(item => 
-                item.id === data.actionItem.id ? data.actionItem : item
-              ));
-              break;
-            case 'action-deleted':
-              setActionItems(prev => prev.filter(item => item.id !== data.actionItemId));
-              break;
-          }
-        }
-      } catch (error) {
-        console.error('Error parsing WebSocket message:', error);
-      }
-    };
-
-    ws.addEventListener('message', handleMessage);
-    return () => ws.removeEventListener('message', handleMessage);
-  }, [ws]);
+  // Note: WebSocket handling for action items is done in RetroBoard.tsx
+  // This component only sends messages, receiving is handled at the parent level
 
   const handleAddAction = () => {
     if (!newAction.title?.trim()) {
