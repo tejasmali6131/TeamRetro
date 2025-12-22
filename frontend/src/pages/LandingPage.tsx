@@ -107,7 +107,8 @@ export default function LandingPage() {
               <CreateRetroForm
                 onSuccess={(retro) => {
                   setShowCreateForm(false);
-                  navigate(`/retro/${retro.id}`);
+                  // Navigate to the board directly (creator doesn't need join page)
+                  navigate(`/retro/${retro.id}/board`);
                 }}
                 onCancel={() => setShowCreateForm(false)}
               />

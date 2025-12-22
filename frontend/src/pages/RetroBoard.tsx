@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Clock, Check, ChevronRight } from 'lucide-react';
+import { Clock, Check, ChevronRight, Share2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getRetroById } from '@/services/api';
 import Header from '@/components/Header';
@@ -83,6 +83,16 @@ export default function RetroBoard() {
 
   const currentStage = enabledStages[currentStageIndex];
   const isRoomCreator = participants.some((p) => p.id === currentUserId && p.isCreator);
+
+  // Share link handler
+  const handleCopyInviteLink = () => {
+    const inviteLink = `${window.location.origin}/retro/${retroId}/join`;
+    navigator.clipboard.writeText(inviteLink).then(() => {
+      toast.success('Invite link copied to clipboard!');
+    }).catch(() => {
+      toast.error('Failed to copy link');
+    });
+  };
 
   // Fetch retro data on mount
   useEffect(() => {
@@ -173,11 +183,22 @@ export default function RetroBoard() {
       {/* Top Navigation Bar */}
       <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10 shadow-sm">
         <div className="container mx-auto px-4 py-4">
-          <div className="mb-4">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{retro.sessionName}</h1>
-            {retro.context && (
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{retro.context}</p>
-            )}
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{retro.sessionName}</h1>
+              {retro.context && (
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{retro.context}</p>
+              )}
+            </div>
+            {/* Share Button */}
+            <button
+              onClick={handleCopyInviteLink}
+              className="ml-4 flex items-center gap-2 px-4 py-2 bg-kone-blue dark:bg-kone-lightBlue text-white rounded-lg hover:bg-kone-darkBlue dark:hover:bg-kone-blue transition-colors shadow-sm"
+              title="Copy invite link"
+            >
+              <Share2 className="w-4 h-4" />
+              <span className="hidden sm:inline">Share</span>
+            </button>
           </div>
 
           {/* Stage Progress Bar */}
