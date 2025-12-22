@@ -10,6 +10,7 @@ import {
 } from '../data/retros';
 import { getTemplateById } from '../data/templates';
 import { generateRandomName } from '../data/names';
+import { wsManager } from '../websocket/websocketManager';
 
 export const getAllRetros = (_req: Request, res: Response): void => {
   try {
@@ -32,7 +33,19 @@ export const getRetroById = (req: Request, res: Response): void => {
     }
     
     const template = getTemplateById(retro.templateId);
-    const participants = getParticipantsByRetroId(id);
+    
+    // Get active participants from WebSocket room if available, otherwise from storage
+    let participants = wsManager.getRoomParticipants(id);
+    if (participants.length === 0) {
+      // Fallback to storage if no active WebSocket connections
+      const storageParticipants = getParticipantsByRetroId(id);
+      participants = storageParticipants.map(p => ({
+        id: p.id,
+        name: p.name,
+        joinedAt: p.joinedAt,
+        isCreator: false
+      }));
+    }
     
     res.status(200).json({
       ...retro,
