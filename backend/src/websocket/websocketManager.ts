@@ -16,6 +16,37 @@ class WebSocketManager {
     this.wss = new WebSocketServer({ server });
 
     this.wss.on('connection', (ws: WebSocket, req) => {
+      // Detect and reject bot/crawler user agents (Teams, Outlook, Slack link previews)
+      const userAgent = req.headers['user-agent'] || '';
+      const botPatterns = [
+        /bot/i,
+        /crawler/i,
+        /spider/i,
+        /preview/i,
+        /slackbot/i,
+        /twitterbot/i,
+        /facebookexternalhit/i,
+        /linkedinbot/i,
+        /whatsapp/i,
+        /telegrambot/i,
+        /discordbot/i,
+        /skypeuripreview/i,
+        /microsoft.*preview/i,
+        /teams/i,
+        /outlook/i,
+        /office/i,
+        /urlpreview/i,
+        /link.*preview/i,
+        /SkypeSpaces/i,
+      ];
+
+      const isBot = botPatterns.some(pattern => pattern.test(userAgent));
+      if (isBot) {
+        console.log(`WebSocket connection rejected: bot user agent detected - ${userAgent}`);
+        ws.close(1008, 'Bot connections not allowed');
+        return;
+      }
+
       // Extract retroId and optional userId from URL: /ws/retro/{retroId}?userId={userId}
       const urlMatch = req.url?.match(/\/ws\/retro\/([^\/\?]+)/);
       const retroId = urlMatch?.[1];
@@ -183,14 +214,18 @@ class WebSocketManager {
     // Broadcast updated participants list to all
     this.broadcastParticipants(retroId, isReconnection ? undefined : participant);
 
+    // Track if user has sent any messages (to detect bots that connect but don't interact)
+    let hasInteracted = isReconnection; // Reconnecting users count as having interacted
+
     // Handle messages
     ws.on('message', (message: string) => {
+      hasInteracted = true;
       this.handleMessage(userId, retroId, message);
     });
 
     // Handle disconnect
     ws.on('close', () => {
-      this.handleDisconnect(userId, retroId);
+      this.handleDisconnect(userId, retroId, hasInteracted);
     });
 
     console.log(`User ${userName} (${userId}) ${isReconnection ? 'reconnected to' : 'joined'} retro ${retroId}`);
@@ -477,12 +512,32 @@ class WebSocketManager {
     }
   }
 
-  private handleDisconnect(userId: string, retroId: string) {
+  private handleDisconnect(userId: string, retroId: string, hasInteracted: boolean = true) {
     const room = this.rooms.get(retroId);
     if (!room) return;
 
     const participant = room.participants.get(userId);
     if (participant) {
+      const connectionDuration = Date.now() - participant.joinedAt.getTime();
+      
+      // If user disconnected quickly (< 5 seconds) without interacting, likely a bot/preview
+      // Remove them immediately without storing for reconnection
+      if (!hasInteracted && connectionDuration < 5000) {
+        room.participants.delete(userId);
+        console.log(`Quick disconnect detected: ${participant.name} (${userId}) removed immediately (likely bot/preview)`);
+        
+        // If room is empty, clean it up
+        if (room.participants.size === 0) {
+          clearUsedNames(retroId);
+          this.rooms.delete(retroId);
+          console.log(`Room ${retroId} cleaned up`);
+        } else {
+          // Broadcast updated participants list
+          this.broadcastParticipants(retroId);
+        }
+        return;
+      }
+
       // Store user info for potential reconnection
       disconnectedUsers.set(userId, {
         retroId: retroId,
@@ -498,6 +553,9 @@ class WebSocketManager {
       console.log(`User ${participant.name} (${userId}) disconnected from retro ${retroId}`);
 
       // Set a timeout to fully remove the participant if they don't reconnect
+      // Shorter timeout (10s) for users who never interacted, longer (30s) for active users
+      const disconnectTimeout = hasInteracted ? 30000 : 10000;
+      
       setTimeout(() => {
         const currentRoom = this.rooms.get(retroId);
         if (!currentRoom) return;
@@ -518,7 +576,7 @@ class WebSocketManager {
             this.broadcastParticipants(retroId);
           }
         }
-      }, 30000); // Wait 30 seconds before removing
+      }, disconnectTimeout);
     }
   }
 
