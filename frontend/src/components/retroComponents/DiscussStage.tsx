@@ -1,45 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { MessageCircle, ChevronLeft, ChevronRight, ThumbsUp, CheckCircle2, Clock, Play, Pause, RotateCcw, Users, Crown } from 'lucide-react';
 import toast from 'react-hot-toast';
-
-interface Template {
-  id: string;
-  name: string;
-  columns: Array<{
-    id: string;
-    name: string;
-    color: string;
-    placeholder: string;
-  }>;
-}
-
-interface Card {
-  id: string;
-  columnId: string;
-  content: string;
-  authorId: string;
-  groupId: string | null;
-  createdAt: Date;
-}
-
-interface CardGroup {
-  id: string;
-  cardIds: string[];
-  columnId: string;
-}
-
-interface VoteData {
-  [itemId: string]: string[];
-}
-
-interface DiscussionItem {
-  id: string;
-  type: 'card' | 'group';
-  columnId: string;
-  cards: Card[];
-  voteCount: number;
-  discussed: boolean;
-}
+import { Template, Card, CardGroup, VoteData } from '@/types/retroBoard';
+import { getDiscussionItems, getColumnInfo, formatTime } from '@/types/retroUtils';
 
 interface DiscussStageProps {
   template: Template | undefined;
@@ -70,57 +33,11 @@ export default function DiscussStage({
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [timerDuration, setTimerDuration] = useState(120); // 2 minutes default
 
-  // Get vote count for an item
-  const getVoteCount = (itemId: string): number => {
-    return votes[itemId]?.length || 0;
-  };
-
-  // Build sorted list of discussion items (sorted by vote count descending)
-  const getDiscussionItems = (): DiscussionItem[] => {
-    const items: DiscussionItem[] = [];
-    const processedCardIds = new Set<string>();
-
-    cards.forEach(card => {
-      if (processedCardIds.has(card.id)) return;
-
-      const group = cardGroups.find(g => g.cardIds.includes(card.id));
-      
-      if (group) {
-        const groupCards = group.cardIds
-          .map(id => cards.find(c => c.id === id))
-          .filter(Boolean) as Card[];
-        
-        items.push({
-          id: group.id,
-          type: 'group',
-          columnId: group.columnId,
-          cards: groupCards,
-          voteCount: getVoteCount(group.id),
-          discussed: discussedItems.has(group.id)
-        });
-        
-        group.cardIds.forEach(id => processedCardIds.add(id));
-      } else {
-        items.push({
-          id: card.id,
-          type: 'card',
-          columnId: card.columnId,
-          cards: [card],
-          voteCount: getVoteCount(card.id),
-          discussed: discussedItems.has(card.id)
-        });
-        processedCardIds.add(card.id);
-      }
-    });
-
-    // Sort by vote count (descending), then by discussed status
-    return items.sort((a, b) => {
-      if (a.discussed !== b.discussed) return a.discussed ? 1 : -1;
-      return b.voteCount - a.voteCount;
-    });
-  };
-
-  const discussionItems = getDiscussionItems();
+  // Use memoized discussion items from shared utility
+  const discussionItems = useMemo(
+    () => getDiscussionItems(cards, cardGroups, votes, discussedItems),
+    [cards, cardGroups, votes, discussedItems]
+  );
   const currentItem = discussionItems[currentItemIndex];
   const totalItems = discussionItems.length;
   const discussedCount = discussedItems.size;
@@ -294,16 +211,6 @@ export default function DiscussStage({
     }
   };
 
-  const formatTime = (seconds: number): string => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const getColumnInfo = (columnId: string) => {
-    return template?.columns.find(c => c.id === columnId);
-  };
-
   if (!template) {
     return (
       <div className="text-center py-12">
@@ -379,16 +286,16 @@ export default function DiscussStage({
             {/* Topic Header */}
             <div 
               className="px-6 py-4 border-b-4"
-              style={{ borderBottomColor: getColumnInfo(currentItem?.columnId)?.color || '#6366f1' }}
+              style={{ borderBottomColor: getColumnInfo(template, currentItem?.columnId ?? '')?.color || '#6366f1' }}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div 
                     className="w-4 h-4 rounded-full"
-                    style={{ backgroundColor: getColumnInfo(currentItem?.columnId)?.color }}
+                    style={{ backgroundColor: getColumnInfo(template, currentItem?.columnId ?? '')?.color }}
                   ></div>
                   <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                    {getColumnInfo(currentItem?.columnId)?.name}
+                    {getColumnInfo(template, currentItem?.columnId ?? '')?.name}
                   </span>
                   {currentItem?.type === 'group' && (
                     <span className="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs rounded-full">
@@ -545,6 +452,7 @@ export default function DiscussStage({
                       value={timerDuration}
                       onChange={(e) => setTimerDuration(Number(e.target.value))}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm"
+                      title="Timer Duration"
                     >
                       <option value={60}>1 minute</option>
                       <option value={120}>2 minutes</option>
@@ -585,6 +493,7 @@ export default function DiscussStage({
                   <button
                     onClick={handleResetTimer}
                     className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-all"
+                    title="Reset Timer"
                   >
                     <RotateCcw className="w-4 h-4" />
                   </button>
@@ -611,7 +520,7 @@ export default function DiscussStage({
             
             <div className="space-y-2 max-h-[300px] overflow-y-auto">
               {discussionItems.map((item, index) => {
-                const column = getColumnInfo(item.columnId);
+                const column = getColumnInfo(template, item.columnId);
                 const isActive = index === currentItemIndex;
                 
                 return (

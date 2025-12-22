@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
-import { Retro, CreateRetroData } from '@/types/retro';
-import { Template } from '@/types/retro';
-import api from '@/services/api';
+import { Retro, CreateRetroData, Template } from '@/types/retro';
+import { getTemplates, createRetro } from '@/services/api';
 import BasicInfoTab from './BasicInfoTab';
 import ProcessTab from './ProcessTab';
 import OptionsTab from './OptionsTab';
@@ -46,8 +45,8 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
 
   const fetchTemplates = async () => {
     try {
-      const response = await api.get('/templates');
-      setTemplates(response.data);
+      const templates = await getTemplates();
+      setTemplates(templates);
     } catch (error) {
       toast.error('Failed to load templates');
     }
@@ -75,9 +74,9 @@ export default function CreateRetroForm({ onSuccess, onCancel }: CreateRetroForm
         nameDeck,
       };
 
-      const response = await api.post('/retros', retroData);
+      const retro = await createRetro(retroData);
       toast.success('Retrospective created successfully!');
-      onSuccess(response.data);
+      onSuccess(retro);
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to create retrospective');
     }

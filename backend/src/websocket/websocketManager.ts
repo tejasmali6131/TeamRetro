@@ -2,69 +2,10 @@ import { WebSocket, WebSocketServer } from 'ws';
 import { v4 as uuidv4 } from 'uuid';
 import { generateRandomName, clearUsedNames, setNameDeck } from '../data/names';
 import { getRetroById } from '../data/retros';
-
-interface Participant {
-  id: string;
-  name: string;
-  ws: WebSocket | null;
-  retroId: string;
-  joinedAt: Date;
-  isCreator: boolean;
-  isConnected: boolean;
-}
-
-interface Card {
-  id: string;
-  columnId: string;
-  content: string;
-  authorId: string;
-  groupId: string | null;
-  createdAt: Date;
-}
-
-interface CardGroup {
-  id: string;
-  cardIds: string[];
-  columnId: string;
-}
-
-interface ActionItem {
-  id: string;
-  title: string;
-  description: string;
-  assigneeId: string;
-  priority: 'low' | 'medium' | 'high';
-  dueDate: string;
-  status: 'pending' | 'in_progress' | 'completed';
-}
-
-interface RetroRoom {
-  id: string;
-  participants: Map<string, Participant>;
-  creatorId: string;
-  currentStage: number;
-  // Persistent state
-  cards: Card[];
-  cardGroups: CardGroup[];
-  votes: { [itemId: string]: string[] };
-  actionItems: ActionItem[];
-  discussedItems: string[];
-  // Track which users are done with each stage (stageId -> userId[])
-  stageDoneStatus: { [stageId: string]: string[] };
-  // Card reactions: cardId -> { emoji: userId[] }
-  reactions: { [cardId: string]: { [emoji: string]: string[] } };
-  // Icebreaker state
-  icebreakerState: {
-    currentQuestionIndex: number;
-    questions: string[];
-    isAnswering: boolean;
-    answeredParticipants: string[];
-    answers: { [participantId: string]: string };
-  };
-}
+import { Participant, RetroRoom, DisconnectedUser } from '../types';
 
 // Store for disconnected users (to allow reconnection within a time window)
-const disconnectedUsers: Map<string, { retroId: string; name: string; isCreator: boolean; disconnectedAt: Date }> = new Map();
+const disconnectedUsers: Map<string, DisconnectedUser> = new Map();
 const RECONNECT_TIMEOUT = 5 * 60 * 1000; // 5 minutes to reconnect
 
 class WebSocketManager {

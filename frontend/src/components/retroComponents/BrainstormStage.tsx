@@ -1,25 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { X, Edit2, Check, EyeOff, CheckCircle2 } from 'lucide-react';
-
-interface Template {
-  id: string;
-  name: string;
-  columns: Array<{
-    id: string;
-    name: string;
-    color: string;
-    placeholder: string;
-  }>;
-}
-
-interface Card {
-  id: string;
-  columnId: string;
-  content: string;
-  authorId: string;
-  groupId: string | null;
-  createdAt: Date;
-}
+import { Template, Card } from '@/types/retroBoard';
 
 interface BrainstormStageProps {
   template: Template | undefined;
@@ -251,12 +232,14 @@ export default function BrainstormStage({ template, currentUserId, ws, retroId, 
                             <button
                               onClick={handleCancelEdit}
                               className="p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                              title="Cancel"
                             >
                               <X className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleSaveEdit(card)}
                               className="p-1 text-kone-blue hover:text-kone-blue/80 dark:text-kone-lightBlue dark:hover:text-kone-lightBlue/80"
+                              title="Save"
                             >
                               <Check className="w-4 h-4" />
                             </button>

@@ -1,36 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Layers, X, Smile } from 'lucide-react';
-
-interface Template {
-  id: string;
-  name: string;
-  columns: Array<{
-    id: string;
-    name: string;
-    color: string;
-    placeholder: string;
-  }>;
-}
-
-interface Card {
-  id: string;
-  columnId: string;
-  content: string;
-  authorId: string;
-  groupId: string | null;
-  createdAt: Date;
-}
-
-interface CardGroup {
-  id: string;
-  cardIds: string[];
-  columnId: string;
-}
-
-// Reactions: cardId -> { emoji: userId[] }
-interface CardReactions {
-  [cardId: string]: { [emoji: string]: string[] };
-}
+import { Template, Card, CardGroup, Reactions } from '@/types/retroBoard';
 
 interface GroupStageProps {
   template: Template | undefined;
@@ -41,7 +11,7 @@ interface GroupStageProps {
   setCards: React.Dispatch<React.SetStateAction<Card[]>>;
   cardGroups: CardGroup[];
   setCardGroups: React.Dispatch<React.SetStateAction<CardGroup[]>>;
-  reactions: CardReactions;
+  reactions: Reactions;
 }
 
 export default function GroupStage({ 

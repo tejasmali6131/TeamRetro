@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { 
   FileText, 
   Download, 
@@ -14,53 +14,17 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
-
-interface Template {
-  id: string;
-  name: string;
-  columns: Array<{
-    id: string;
-    name: string;
-    color: string;
-    placeholder: string;
-  }>;
-}
-
-interface Card {
-  id: string;
-  columnId: string;
-  content: string;
-  authorId: string;
-  groupId: string | null;
-  createdAt: Date;
-}
-
-interface CardGroup {
-  id: string;
-  cardIds: string[];
-  columnId: string;
-}
-
-interface VoteData {
-  [itemId: string]: string[];
-}
-
-interface Participant {
-  id: string;
-  name: string;
-  joinedAt: Date;
-  isCreator?: boolean;
-}
-
-interface ActionItem {
-  id: string;
-  title: string;
-  description: string;
-  assigneeId: string;
-  priority: 'low' | 'medium' | 'high';
-  dueDate: string;
-  status: 'pending' | 'in_progress' | 'completed';
-}
+import { Template, Card, CardGroup, VoteData, Participant, ActionItem } from '@/types/retroBoard';
+import {
+  getTotalVotes,
+  getVoteCount,
+  getTopVotedItems,
+  getCardsByColumn,
+  getColumnInfo,
+  getAssigneeName,
+  getPriorityColor,
+  getStatusColor
+} from '@/types/retroUtils';
 
 interface ReportStageProps {
   template: Template | undefined;
@@ -86,124 +50,21 @@ export default function ReportStage({
 }: ReportStageProps) {
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
-  // Calculate statistics
+  // Calculate statistics using shared utilities
   const totalCards = cards.length;
-  const totalVotes = Object.values(votes).reduce((sum, voters) => sum + voters.length, 0);
+  const totalVotes = getTotalVotes(votes);
   const totalActions = actionItems.length;
   const highPriorityActions = actionItems.filter(a => a.priority === 'high').length;
 
-  // Get vote count for an item
-  const getVoteCount = (itemId: string): number => {
-    return votes[itemId]?.length || 0;
-  };
-
-  // Get cards by column
-  const getCardsByColumn = () => {
-    const columnData: { [columnId: string]: { cards: Card[]; groups: { id: string; cards: Card[]; voteCount: number }[] } } = {};
-    
-    template?.columns.forEach(col => {
-      columnData[col.id] = { cards: [], groups: [] };
-    });
-
-    const processedCardIds = new Set<string>();
-
-    cards.forEach(card => {
-      if (processedCardIds.has(card.id)) return;
-
-      const group = cardGroups.find(g => g.cardIds.includes(card.id));
-      
-      if (group) {
-        const groupCards = group.cardIds
-          .map(id => cards.find(c => c.id === id))
-          .filter(Boolean) as Card[];
-        
-        if (columnData[group.columnId]) {
-          columnData[group.columnId].groups.push({
-            id: group.id,
-            cards: groupCards,
-            voteCount: getVoteCount(group.id)
-          });
-        }
-        
-        group.cardIds.forEach(id => processedCardIds.add(id));
-      } else {
-        if (columnData[card.columnId]) {
-          columnData[card.columnId].cards.push(card);
-        }
-        processedCardIds.add(card.id);
-      }
-    });
-
-    return columnData;
-  };
-
-  // Get top voted items
-  const getTopVotedItems = (limit: number = 10) => {
-    const items: { id: string; content: string; columnId: string; voteCount: number; type: 'card' | 'group' }[] = [];
-    const processedCardIds = new Set<string>();
-
-    cards.forEach(card => {
-      if (processedCardIds.has(card.id)) return;
-
-      const group = cardGroups.find(g => g.cardIds.includes(card.id));
-      
-      if (group) {
-        const groupCards = group.cardIds
-          .map(id => cards.find(c => c.id === id))
-          .filter(Boolean) as Card[];
-        
-        items.push({
-          id: group.id,
-          content: groupCards.map(c => c.content).join(' • '),
-          columnId: group.columnId,
-          voteCount: getVoteCount(group.id),
-          type: 'group'
-        });
-        
-        group.cardIds.forEach(id => processedCardIds.add(id));
-      } else {
-        items.push({
-          id: card.id,
-          content: card.content,
-          columnId: card.columnId,
-          voteCount: getVoteCount(card.id),
-          type: 'card'
-        });
-        processedCardIds.add(card.id);
-      }
-    });
-
-    return items.sort((a, b) => b.voteCount - a.voteCount).slice(0, limit);
-  };
-
-  const columnData = getCardsByColumn();
-  const topVotedItems = getTopVotedItems(10);
-
-  const getColumnInfo = (columnId: string) => {
-    return template?.columns.find(c => c.id === columnId);
-  };
-
-  const getAssigneeName = (assigneeId: string) => {
-    const participant = participants.find(p => p.id === assigneeId);
-    return participant?.name || 'Unassigned';
-  };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'text-red-600 bg-red-100';
-      case 'medium': return 'text-yellow-600 bg-yellow-100';
-      case 'low': return 'text-green-600 bg-green-100';
-      default: return 'text-gray-600 bg-gray-100';
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed': return 'text-green-600 bg-green-100';
-      case 'in_progress': return 'text-blue-600 bg-blue-100';
-      default: return 'text-gray-600 bg-gray-100';
-    }
-  };
+  // Use memoized data from shared utilities
+  const columnData = useMemo(
+    () => getCardsByColumn(template, cards, cardGroups, votes),
+    [template, cards, cardGroups, votes]
+  );
+  const topVotedItems = useMemo(
+    () => getTopVotedItems(cards, cardGroups, votes, 10),
+    [cards, cardGroups, votes]
+  );
 
   // Generate text-based PDF
   const handleDownloadPdf = async () => {
@@ -324,7 +185,7 @@ export default function ReportStage({
       } else {
         topVotedItems.forEach((item, index) => {
           checkNewPage(12);
-          const column = getColumnInfo(item.columnId);
+          const column = getColumnInfo(template, item.columnId);
           
           pdf.setFontSize(10);
           pdf.setFont('helvetica', 'bold');
@@ -396,7 +257,7 @@ export default function ReportStage({
           pdf.text(title, margin + 2, yPos);
           
           // Assignee
-          const assignee = getAssigneeName(action.assigneeId);
+          const assignee = getAssigneeName(participants, action.assigneeId);
           const assigneeText = assignee.length > 15 ? assignee.substring(0, 15) + '...' : assignee;
           pdf.text(assigneeText, margin + 75, yPos);
           
@@ -457,7 +318,7 @@ export default function ReportStage({
             checkNewPage(10);
             pdf.setFontSize(9);
             pdf.setFont('helvetica', 'normal');
-            const voteText = `(${getVoteCount(card.id)} votes)`;
+            const voteText = `(${getVoteCount(votes, card.id)} votes)`;
             pdf.setTextColor(100, 100, 100);
             pdf.text(voteText, pageWidth - margin, yPos, { align: 'right' });
             pdf.setTextColor(0, 0, 0);
@@ -631,7 +492,7 @@ export default function ReportStage({
           ) : (
             <div className="space-y-2">
               {topVotedItems.map((item, index) => {
-                const column = getColumnInfo(item.columnId);
+                const column = getColumnInfo(template, item.columnId);
                 return (
                   <div 
                     key={item.id}
@@ -698,7 +559,7 @@ export default function ReportStage({
                       <td className="p-3">
                         <div className="flex items-center gap-1 text-gray-700 dark:text-gray-300">
                           <User className="w-3 h-3" />
-                          {getAssigneeName(action.assigneeId)}
+                          {getAssigneeName(participants, action.assigneeId)}
                         </div>
                       </td>
                       <td className="p-3">
@@ -766,7 +627,7 @@ export default function ReportStage({
                         <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-all">{card.content}</p>
                         <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-1">
                           <ThumbsUp className="w-3 h-3" />
-                          {getVoteCount(card.id)}
+                          {getVoteCount(votes, card.id)}
                         </span>
                       </div>
                     ))}

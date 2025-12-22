@@ -1,37 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, Minus, Award, AlertCircle, ThumbsUp, CheckCircle2 } from 'lucide-react';
 import toast from 'react-hot-toast';
-
-interface Template {
-  id: string;
-  name: string;
-  columns: Array<{
-    id: string;
-    name: string;
-    color: string;
-    placeholder: string;
-  }>;
-}
-
-interface Card {
-  id: string;
-  columnId: string;
-  content: string;
-  authorId: string;
-  groupId: string | null;
-  createdAt: Date;
-}
-
-interface CardGroup {
-  id: string;
-  cardIds: string[];
-  columnId: string;
-}
-
-// Vote tracking - maps cardId or groupId to array of userIds who voted
-export interface VoteData {
-  [itemId: string]: string[];
-}
+import { Template, Card, CardGroup, VoteData } from '@/types/retroBoard';
 
 interface VoteStageProps {
   template: Template | undefined;

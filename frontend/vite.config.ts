@@ -32,6 +32,11 @@ export default defineConfig({
       '/ws': {
         target: 'ws://localhost:5000',
         ws: true,
+        configure: (proxy) => {
+          proxy.on('error', () => {
+            // Suppress WebSocket proxy errors (e.g., ECONNABORTED on disconnect)
+          });
+        },
       },
     },
   },

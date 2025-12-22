@@ -2,19 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Sparkles, Edit2, Check, X, ChevronRight, Smile } from 'lucide-react';
 import toast from 'react-hot-toast';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
-
-interface Participant {
-  id: string;
-  name: string;
-}
-
-interface IcebreakerState {
-  currentQuestionIndex: number;
-  questions: string[];
-  isAnswering: boolean;
-  answeredParticipants: string[];
-  answers: { [participantId: string]: string };
-}
+import { Participant, IcebreakerState } from '@/types/retroBoard';
 
 interface IcebreakerStageProps {
   participants: Participant[];

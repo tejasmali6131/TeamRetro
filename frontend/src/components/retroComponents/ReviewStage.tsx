@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { 
   ClipboardList, 
   Plus, 
@@ -17,54 +17,15 @@ import {
   Users
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-
-interface Template {
-  id: string;
-  name: string;
-  columns: Array<{
-    id: string;
-    name: string;
-    color: string;
-    placeholder: string;
-  }>;
-}
-
-interface Card {
-  id: string;
-  columnId: string;
-  content: string;
-  authorId: string;
-  groupId: string | null;
-  createdAt: Date;
-}
-
-interface CardGroup {
-  id: string;
-  cardIds: string[];
-  columnId: string;
-}
-
-interface VoteData {
-  [itemId: string]: string[];
-}
-
-interface Participant {
-  id: string;
-  name: string;
-  joinedAt: Date;
-  isCreator?: boolean;
-}
-
-interface ActionItem {
-  id: string;
-  title: string;
-  description: string;
-  assigneeId: string;
-  priority: 'low' | 'medium' | 'high';
-  dueDate: string;
-  status: 'pending' | 'in_progress' | 'completed';
-  sourceItemId?: string; // Reference to the card/group this action came from
-}
+import { Template, Card, CardGroup, VoteData, Participant, ActionItem } from '@/types/retroBoard';
+import { 
+  getTopVotedItems, 
+  getTotalVotes, 
+  getColumnInfo, 
+  getAssigneeName, 
+  getPriorityColor,
+  getParticipantStats
+} from '@/types/retroUtils';
 
 interface ReviewStageProps {
   template: Template | undefined;
@@ -103,53 +64,13 @@ export default function ReviewStage({
     status: 'pending'
   });
 
-  // Get vote count for an item
-  const getVoteCount = (itemId: string): number => {
-    return votes[itemId]?.length || 0;
-  };
-
-  // Get top voted items for summary
-  const getTopVotedItems = () => {
-    const items: { id: string; content: string; columnId: string; voteCount: number; type: 'card' | 'group' }[] = [];
-    const processedCardIds = new Set<string>();
-
-    cards.forEach(card => {
-      if (processedCardIds.has(card.id)) return;
-
-      const group = cardGroups.find(g => g.cardIds.includes(card.id));
-      
-      if (group) {
-        const groupCards = group.cardIds
-          .map(id => cards.find(c => c.id === id))
-          .filter(Boolean) as Card[];
-        
-        items.push({
-          id: group.id,
-          content: groupCards.map(c => c.content).join(' • '),
-          columnId: group.columnId,
-          voteCount: getVoteCount(group.id),
-          type: 'group'
-        });
-        
-        group.cardIds.forEach(id => processedCardIds.add(id));
-      } else {
-        items.push({
-          id: card.id,
-          content: card.content,
-          columnId: card.columnId,
-          voteCount: getVoteCount(card.id),
-          type: 'card'
-        });
-        processedCardIds.add(card.id);
-      }
-    });
-
-    return items.sort((a, b) => b.voteCount - a.voteCount).slice(0, 5);
-  };
-
-  const topVotedItems = getTopVotedItems();
+  // Use memoized utilities from shared module
+  const topVotedItems = useMemo(
+    () => getTopVotedItems(cards, cardGroups, votes, 5),
+    [cards, cardGroups, votes]
+  );
   const totalCards = cards.length;
-  const totalVotes = Object.values(votes).reduce((sum, voters) => sum + voters.length, 0);
+  const totalVotes = getTotalVotes(votes);
 
   // Note: WebSocket handling for action items is done in RetroBoard.tsx
   // This component only sends messages, receiving is handled at the parent level
@@ -239,30 +160,13 @@ export default function ReviewStage({
     setIsAddingAction(true);
   };
 
-  const getColumnInfo = (columnId: string) => {
-    return template?.columns.find(c => c.id === columnId);
-  };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/30';
-      case 'medium': return 'text-yellow-600 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-900/30';
-      case 'low': return 'text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30';
-      default: return 'text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700';
-    }
-  };
-
+  // Status icon helper (component-specific, can't easily share JSX)
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed': return <CheckCircle2 className="w-4 h-4 text-green-500" />;
       case 'in_progress': return <Clock className="w-4 h-4 text-yellow-500" />;
       default: return <AlertCircle className="w-4 h-4 text-gray-400" />;
     }
-  };
-
-  const getAssigneeName = (assigneeId: string) => {
-    const participant = participants.find(p => p.id === assigneeId);
-    return participant?.name || 'Unassigned';
   };
 
   if (!template) {
@@ -321,7 +225,7 @@ export default function ReviewStage({
           ) : (
             <div className="space-y-3">
               {topVotedItems.map((item, index) => {
-                const column = getColumnInfo(item.columnId);
+                const column = getColumnInfo(template, item.columnId);
                 return (
                   <div 
                     key={item.id}
@@ -401,6 +305,7 @@ export default function ReviewStage({
                     <select
                       value={newAction.assigneeId || ''}
                       onChange={(e) => setNewAction(prev => ({ ...prev, assigneeId: e.target.value }))}
+                      title="Assignee"
                       className="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                     >
                       <option value="">Unassigned</option>
@@ -414,6 +319,7 @@ export default function ReviewStage({
                     <select
                       value={newAction.priority || 'medium'}
                       onChange={(e) => setNewAction(prev => ({ ...prev, priority: e.target.value as 'low' | 'medium' | 'high' }))}
+                      title="Priority"
                       className="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                     >
                       <option value="low">Low</option>
@@ -428,6 +334,7 @@ export default function ReviewStage({
                       value={newAction.dueDate || ''}
                       min={new Date().toISOString().split('T')[0]}
                       onChange={(e) => setNewAction(prev => ({ ...prev, dueDate: e.target.value }))}
+                      title="Due Date"
                       className="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                     />
                   </div>
@@ -483,7 +390,7 @@ export default function ReviewStage({
                   onCancel={() => setEditingActionId(null)}
                   onDelete={() => handleDeleteAction(action.id)}
                   participants={participants}
-                  getAssigneeName={getAssigneeName}
+                  getAssigneeName={(id) => getAssigneeName(participants, id)}
                   getPriorityColor={getPriorityColor}
                   getStatusIcon={getStatusIcon}
                 />
@@ -501,9 +408,7 @@ export default function ReviewStage({
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {participants.map(participant => {
-            const participantCards = cards.filter(c => c.authorId === participant.id).length;
-            const participantVotes = Object.values(votes).filter(voters => voters.includes(participant.id)).length;
-            const assignedActions = actionItems.filter(a => a.assigneeId === participant.id).length;
+            const stats = getParticipantStats(participant, cards, votes, actionItems);
             
             return (
               <div 
@@ -521,15 +426,15 @@ export default function ReviewStage({
                 <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
                   <span className="flex items-center gap-1">
                     <MessageCircle className="w-3 h-3" />
-                    {participantCards}
+                    {stats.cardsCreated}
                   </span>
                   <span className="flex items-center gap-1">
                     <ThumbsUp className="w-3 h-3" />
-                    {participantVotes}
+                    {stats.votesGiven}
                   </span>
                   <span className="flex items-center gap-1">
                     <Target className="w-3 h-3" />
-                    {assignedActions}
+                    {stats.actionsAssigned}
                   </span>
                 </div>
               </div>
@@ -583,12 +488,14 @@ function ActionItemCard({
             type="text"
             value={editedAction.title}
             onChange={(e) => setEditedAction(prev => ({ ...prev, title: e.target.value }))}
+            placeholder="Action title..."
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
           />
           <textarea
             value={editedAction.description}
             onChange={(e) => setEditedAction(prev => ({ ...prev, description: e.target.value }))}
             rows={2}
+            placeholder="Description (optional)..."
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 resize-none"
           />
           <div className="grid grid-cols-4 gap-3">
@@ -597,6 +504,7 @@ function ActionItemCard({
               <select
                 value={editedAction.assigneeId}
                 onChange={(e) => setEditedAction(prev => ({ ...prev, assigneeId: e.target.value }))}
+                title="Assignee"
                 className="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm"
               >
                 <option value="">Unassigned</option>
@@ -610,6 +518,7 @@ function ActionItemCard({
               <select
                 value={editedAction.priority}
                 onChange={(e) => setEditedAction(prev => ({ ...prev, priority: e.target.value as 'low' | 'medium' | 'high' }))}
+                title="Priority"
                 className="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm"
               >
                 <option value="low">Low</option>
@@ -622,6 +531,7 @@ function ActionItemCard({
               <select
                 value={editedAction.status}
                 onChange={(e) => setEditedAction(prev => ({ ...prev, status: e.target.value as 'pending' | 'in_progress' | 'completed' }))}
+                title="Status"
                 className="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm"
               >
                 <option value="pending">Pending</option>
@@ -636,6 +546,7 @@ function ActionItemCard({
                 value={editedAction.dueDate}
                 min={new Date().toISOString().split('T')[0]}
                 onChange={(e) => setEditedAction(prev => ({ ...prev, dueDate: e.target.value }))}
+                title="Due Date"
                 className="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm"
               />
             </div>
