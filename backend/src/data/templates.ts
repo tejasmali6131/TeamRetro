@@ -2,6 +2,45 @@ import { Template } from '../models/Template';
 
 export const templates: Template[] = [
   {
+    id: '0',
+    name: 'What Went Well, What Went Less Well, What to Try Next, What Puzzles Us',
+    description: 'Comprehensive reflection on successes, challenges, future experiments, and questions',
+    columns: [
+      {
+        id: 'went-well',
+        name: 'What Went Well',
+        placeholder: 'What worked well in this sprint?',
+        color: '#22c55e',
+        order: 1
+      },
+      {
+        id: 'went-less-well',
+        name: 'What Went Less Well',
+        placeholder: 'What could have gone better?',
+        color: '#f59e0b',
+        order: 2
+      },
+      {
+        id: 'try-next',
+        name: 'What to Try Next',
+        placeholder: 'What experiments should we try?',
+        color: '#3b82f6',
+        order: 3
+      },
+      {
+        id: 'puzzles',
+        name: 'What Puzzles Us',
+        placeholder: 'What questions do we have?',
+        color: '#8b5cf6',
+        order: 4
+      }
+    ],
+    isDefault: true,
+    createdBy: 'system',
+    createdAt: new Date('2024-01-01'),
+    updatedAt: new Date('2024-01-01')
+  },
+  {
     id: '1',
     name: 'Start, Stop, Continue',
     description: 'Reflect on what to start doing, stop doing, and continue doing',
