@@ -202,46 +202,46 @@ export default function VoteStage({
   const topItems = getTopVotedItems();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Done Button */}
       <div className="flex justify-end">
         <button
           onClick={handleToggleDone}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors border-2 min-w-[150px] justify-center ${
+          className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors border-2 min-w-[120px] sm:min-w-[150px] justify-center text-sm sm:text-base ${
             localIsDone
               ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-500'
               : 'bg-kone-blue/10 dark:bg-kone-blue/20 text-kone-blue dark:text-kone-lightBlue hover:bg-kone-blue/20 dark:hover:bg-kone-blue/30 border-kone-blue dark:border-kone-lightBlue'
           }`}
         >
-          <CheckCircle2 className={`w-5 h-5 ${localIsDone ? 'text-green-500' : 'text-kone-blue dark:text-kone-lightBlue'}`} />
+          <CheckCircle2 className={`w-4 h-4 sm:w-5 sm:h-5 ${localIsDone ? 'text-green-500' : 'text-kone-blue dark:text-kone-lightBlue'}`} />
           {localIsDone ? 'Done' : 'Mark as Done'}
         </button>
       </div>
 
       {/* Vote Info Banner */}
-      <div className="bg-gradient-to-r from-kone-blue/10 to-indigo-100 dark:from-kone-blue/20 dark:to-indigo-900/30 rounded-xl p-4 border border-kone-blue/20 dark:border-kone-lightBlue/30">
-        <div className="flex items-center justify-between flex-wrap gap-4">
+      <div className="bg-gradient-to-r from-kone-blue/10 to-indigo-100 dark:from-kone-blue/20 dark:to-indigo-900/30 rounded-xl p-3 sm:p-4 border border-kone-blue/20 dark:border-kone-lightBlue/30">
+        <div className="flex items-center justify-between flex-wrap gap-3 sm:gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-kone-blue dark:bg-kone-lightBlue rounded-full flex items-center justify-center">
-              <ThumbsUp className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-kone-blue dark:bg-kone-lightBlue rounded-full flex items-center justify-center">
+              <ThumbsUp className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900 dark:text-gray-100">Cast Your Votes</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <h3 className="font-semibold text-sm sm:text-base text-gray-900 dark:text-gray-100">Cast Your Votes</h3>
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                 Click on cards to vote for the topics most important to discuss
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
             <div className="text-center">
-              <div className={`text-3xl font-bold ${votesRemaining > 0 ? 'text-kone-blue dark:text-kone-lightBlue' : 'text-red-500'}`}>
+              <div className={`text-2xl sm:text-3xl font-bold ${votesRemaining > 0 ? 'text-kone-blue dark:text-kone-lightBlue' : 'text-red-500'}`}>
                 {votesRemaining}
               </div>
               <div className="text-xs text-gray-500 dark:text-gray-400">votes left</div>
             </div>
-            <div className="h-12 w-px bg-gray-300 dark:bg-gray-600"></div>
+            <div className="h-10 sm:h-12 w-px bg-gray-300 dark:bg-gray-600"></div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-gray-700 dark:text-gray-300">
+              <div className="text-2xl sm:text-3xl font-bold text-gray-700 dark:text-gray-300">
                 {votesUsed}
               </div>
               <div className="text-xs text-gray-500 dark:text-gray-400">votes used</div>
@@ -291,8 +291,8 @@ export default function VoteStage({
       )}
 
       {/* Voting Columns */}
-      <div className="overflow-x-auto overflow-y-hidden">
-        <div className="flex gap-4 pb-2" style={{ width: 'max-content' }}>
+      <div className="overflow-x-auto overflow-y-hidden -mx-2 sm:mx-0 px-2 sm:px-0">
+        <div className="flex gap-3 sm:gap-4 pb-2" style={{ width: 'max-content' }}>
           {template.columns.map((column) => {
             const items = getDisplayableItems(column.id);
             const columnTotalVotes = items.reduce((sum, item) => sum + getVoteCount(item.id), 0);

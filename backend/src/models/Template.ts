@@ -17,12 +17,6 @@ export interface TemplateColumn {
   placeholder: string;
 }
 
-export interface CreateTemplateDTO {
-  name: string;
-  description: string;
-  columns: Omit<TemplateColumn, 'id'>[];
-}
-
 // Predefined templates
 export const DEFAULT_TEMPLATES = {
   START_STOP_CONTINUE: {

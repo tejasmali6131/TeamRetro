@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Clock, Check, ChevronRight, Share2 } from 'lucide-react';
+import { Clock, Check, ChevronRight, Users, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getRetroById } from '@/services/api';
 import Header from '@/components/Header';
@@ -53,6 +53,7 @@ export default function RetroBoard() {
   const [retro, setRetro] = useState<RetroData | null>(null);
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Get enabled stages from retro data
   const allStages = retro?.stages || DEFAULT_STAGES;
@@ -83,16 +84,6 @@ export default function RetroBoard() {
 
   const currentStage = enabledStages[currentStageIndex];
   const isRoomCreator = participants.some((p) => p.id === currentUserId && p.isCreator);
-
-  // Share link handler
-  const handleCopyInviteLink = () => {
-    const inviteLink = `${window.location.origin}/retro/${retroId}/join`;
-    navigator.clipboard.writeText(inviteLink).then(() => {
-      toast.success('Invite link copied to clipboard!');
-    }).catch(() => {
-      toast.error('Failed to copy link');
-    });
-  };
 
   // Fetch retro data on mount
   useEffect(() => {
@@ -185,20 +176,22 @@ export default function RetroBoard() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-start justify-between mb-4">
             <div className="flex-1">
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{retro.sessionName}</h1>
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">{retro.sessionName}</h1>
               {retro.context && (
                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{retro.context}</p>
               )}
             </div>
-            {/* Share Button */}
-            <button
-              onClick={handleCopyInviteLink}
-              className="ml-4 flex items-center gap-2 px-4 py-2 bg-kone-blue dark:bg-kone-lightBlue text-white rounded-lg hover:bg-kone-darkBlue dark:hover:bg-kone-blue transition-colors shadow-sm"
-              title="Copy invite link"
-            >
-              <Share2 className="w-4 h-4" />
-              <span className="hidden sm:inline">Share</span>
-            </button>
+            {/* Mobile Participants Toggle & Share Button */}
+            <div className="flex items-center gap-2 ml-4">
+              <button
+                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                className="lg:hidden flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                title="Toggle participants"
+              >
+                <Users className="w-4 h-4" />
+                <span className="text-sm font-medium">{participants.length}</span>
+              </button>
+            </div>
           </div>
 
           {/* Stage Progress Bar */}
@@ -220,8 +213,8 @@ export default function RetroBoard() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 container mx-auto px-4 py-6 flex gap-6 overflow-hidden">
-        <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 container mx-auto px-2 sm:px-4 py-4 sm:py-6 flex gap-4 lg:gap-6 overflow-hidden relative">
+        <div className="flex-1 flex flex-col min-w-0 w-full lg:w-auto">
           {/* Timer */}
           {currentStage?.duration > 0 && (
             <TimerSection
@@ -236,7 +229,7 @@ export default function RetroBoard() {
           )}
 
           {/* Stage Content */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 flex-1 overflow-hidden">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 sm:p-6 flex-1 overflow-hidden">
             <StageContent
               stageId={currentStage?.id}
               retro={retro}
@@ -263,18 +256,18 @@ export default function RetroBoard() {
 
           {/* Navigation Buttons */}
           {isRoomCreator && (
-            <div className="flex justify-between mt-6">
+            <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-0 mt-4 sm:mt-6">
               <button
                 onClick={goToPreviousStage}
                 disabled={currentStageIndex === 0}
-                className="btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+                className="btn-secondary disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base py-2"
               >
                 ← Previous Stage
               </button>
               <button
                 onClick={goToNextStage}
                 disabled={isNextDisabled}
-                className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base py-2"
                 title={
                   isNextDisabled && currentStage?.id
                     ? `Waiting for ${participants.length - (stageDoneStatus[currentStage.id]?.length || 0)} participants to finish`
@@ -287,15 +280,46 @@ export default function RetroBoard() {
           )}
         </div>
 
-        {/* Participants Sidebar */}
-        <ParticipantsSidebar
-          participants={participants}
-          retroId={retroId || ''}
-          currentUserId={currentUserId}
-          creatorId={participants.find((p) => p.isCreator)?.id || ''}
-          stageDoneStatus={stageDoneStatus}
-          currentStageId={currentStage?.id || ''}
-        />
+        {/* Participants Sidebar - Desktop */}
+        <div className="hidden lg:block">
+          <ParticipantsSidebar
+            participants={participants}
+            retroId={retroId || ''}
+            currentUserId={currentUserId}
+            creatorId={participants.find((p) => p.isCreator)?.id || ''}
+            stageDoneStatus={stageDoneStatus}
+            currentStageId={currentStage?.id || ''}
+          />
+        </div>
+
+        {/* Participants Sidebar - Mobile (Overlay) */}
+        {isSidebarOpen && (
+          <div className="lg:hidden fixed inset-0 z-50 bg-black bg-opacity-50" onClick={() => setIsSidebarOpen(false)}>
+            <div 
+              className="absolute right-0 top-0 h-full w-80 max-w-[85vw] bg-white dark:bg-gray-800 shadow-2xl overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between z-10">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Participants</h2>
+                <button
+                  onClick={() => setIsSidebarOpen(false)}
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                  title="Close participants sidebar"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <ParticipantsSidebar
+                participants={participants}
+                retroId={retroId || ''}
+                currentUserId={currentUserId}
+                creatorId={participants.find((p) => p.isCreator)?.id || ''}
+                stageDoneStatus={stageDoneStatus}
+                currentStageId={currentStage?.id || ''}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -346,20 +370,23 @@ interface TimerSectionProps {
 
 function TimerSection({ stageName, duration, timeRemaining, isRunning, onStart, onPause, formatTime }: TimerSectionProps) {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Clock className="w-6 h-6 text-kone-blue dark:text-kone-lightBlue" />
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 sm:p-6 mb-4 sm:mb-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-kone-blue dark:text-kone-lightBlue flex-shrink-0" />
           <div>
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100">{stageName} Phase</h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <h3 className="font-semibold text-sm sm:text-base text-gray-900 dark:text-gray-100">{stageName} Phase</h3>
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
               {isRunning
                 ? `Time remaining: ${formatTime(timeRemaining)}`
                 : `Duration: ${Math.floor(duration / 60)} minutes`}
             </p>
           </div>
         </div>
-        <button onClick={isRunning ? onPause : onStart} className={isRunning ? 'btn-secondary' : 'btn-primary'}>
+        <button 
+          onClick={isRunning ? onPause : onStart} 
+          className={`${isRunning ? 'btn-secondary' : 'btn-primary'} text-sm sm:text-base py-2 w-full sm:w-auto`}
+        >
           {isRunning ? 'Pause Timer' : 'Start Timer'}
         </button>
       </div>
@@ -424,7 +451,7 @@ function StageContent({
     ),
     brainstorm: (
       <>
-        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Brainstorm Stage</h2>
+        <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mb-3 sm:mb-4">Brainstorm Stage</h2>
         <BrainstormStage
           template={retro.template}
           currentUserId={currentUserId}
@@ -439,7 +466,7 @@ function StageContent({
     ),
     group: (
       <>
-        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Group Stage</h2>
+        <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mb-3 sm:mb-4">Group Stage</h2>
         <GroupStage
           template={retro.template}
           currentUserId={currentUserId}
@@ -455,7 +482,7 @@ function StageContent({
     ),
     vote: (
       <>
-        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Vote Stage</h2>
+        <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mb-3 sm:mb-4">Vote Stage</h2>
         <VoteStage
           template={retro.template}
           currentUserId={currentUserId}
@@ -473,7 +500,7 @@ function StageContent({
     ),
     discuss: (
       <>
-        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Discuss Stage</h2>
+        <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mb-3 sm:mb-4">Discuss Stage</h2>
         <DiscussStage
           template={retro.template}
           currentUserId={currentUserId}
@@ -490,7 +517,7 @@ function StageContent({
     ),
     review: (
       <>
-        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Review Stage</h2>
+        <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mb-3 sm:mb-4">Review Stage</h2>
         <ReviewStage
           template={retro.template}
           currentUserId={currentUserId}
@@ -508,7 +535,7 @@ function StageContent({
     ),
     report: (
       <>
-        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Report Stage</h2>
+        <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mb-3 sm:mb-4">Report Stage</h2>
         <ReportStage
           template={retro.template}
           retroId={retroId}

@@ -159,39 +159,39 @@ export default function BrainstormStage({ template, currentUserId, ws, retroId, 
       <div className="flex justify-end">
         <button
           onClick={handleToggleDone}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors border-2 min-w-[150px] justify-center ${
+          className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors border-2 min-w-[120px] sm:min-w-[150px] justify-center text-sm sm:text-base ${
             localIsDone
               ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-500'
               : 'bg-kone-blue/10 dark:bg-kone-blue/20 text-kone-blue dark:text-kone-lightBlue hover:bg-kone-blue/20 dark:hover:bg-kone-blue/30 border-kone-blue dark:border-kone-lightBlue'
           }`}
         >
-          <CheckCircle2 className={`w-5 h-5 ${localIsDone ? 'text-green-500' : 'text-kone-blue dark:text-kone-lightBlue'}`} />
+          <CheckCircle2 className={`w-4 h-4 sm:w-5 sm:h-5 ${localIsDone ? 'text-green-500' : 'text-kone-blue dark:text-kone-lightBlue'}`} />
           {localIsDone ? 'Done' : 'Mark as Done'}
         </button>
       </div>
       
-      <div className="overflow-x-auto overflow-y-hidden">
-        <div className="flex gap-4 pb-2" style={{ width: 'max-content' }}>
+      <div className="overflow-x-auto overflow-y-hidden -mx-2 sm:mx-0 px-2 sm:px-0">
+        <div className="flex gap-3 sm:gap-4 pb-2" style={{ width: 'max-content' }}>
           {template.columns.map((column) => {
             const columnCards = getCardsForColumn(column.id);
             
             return (
               <div
                 key={column.id}
-                className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 min-h-[400px] flex-shrink-0"
-                style={{ width: '280px' }}
+                className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 sm:p-4 min-h-[350px] sm:min-h-[400px] flex-shrink-0"
+                style={{ width: '260px' }}
             >
               {/* Column Header */}
               <div
-                className="flex items-center gap-2 mb-4 pb-2 border-b-2"
+                className="flex items-center gap-2 mb-3 sm:mb-4 pb-2 border-b-2"
                 style={{ borderBottomColor: column.color }}
               >
                 <div
                   className="w-3 h-3 rounded-full flex-shrink-0"
                   style={{ background: column.color }}
                 ></div>
-                <h3 className="font-semibold text-gray-900 dark:text-gray-100 truncate">{column.name}</h3>
-                <span className="ml-auto text-sm text-gray-500 dark:text-gray-400 flex-shrink-0">
+                <h3 className="font-semibold text-sm sm:text-base text-gray-900 dark:text-gray-100 truncate">{column.name}</h3>
+                <span className="ml-auto text-xs sm:text-sm text-gray-500 dark:text-gray-400 flex-shrink-0">
                   {columnCards.length}
                 </span>
               </div>

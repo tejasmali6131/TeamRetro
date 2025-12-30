@@ -214,20 +214,20 @@ export default function IcebreakerStage({ participants, currentUserId, isRoomCre
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div className="text-center">
-        <div className="flex items-center justify-center gap-2 mb-4">
-          <Sparkles className="w-6 h-6 text-kone-blue dark:text-kone-lightBlue" />
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Icebreaker Time!</h2>
+        <div className="flex items-center justify-center gap-2 mb-3 sm:mb-4">
+          <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-kone-blue dark:text-kone-lightBlue" />
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Icebreaker Time!</h2>
         </div>
-        <p className="text-gray-600 dark:text-gray-400">
+        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
           Let's get to know each other better before we start the retrospective
         </p>
       </div>
 
       {/* Question Card */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 border-2 border-kone-blue dark:border-kone-lightBlue">
-        <div className="flex items-center justify-between mb-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 sm:p-8 border-2 border-kone-blue dark:border-kone-lightBlue">
+        <div className="flex items-center justify-between mb-3 sm:mb-4">
           {isRoomCreator && (
             <div className="flex items-center gap-3">
               <button

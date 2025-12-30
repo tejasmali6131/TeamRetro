@@ -283,20 +283,20 @@ export default function GroupStage({
   }
 
   return (
-    <div className="overflow-x-auto overflow-y-hidden">
-      <div className="flex gap-4 pb-2" style={{ width: 'max-content' }}>
+    <div className="overflow-x-auto overflow-y-hidden -mx-2 sm:mx-0 px-2 sm:px-0">
+      <div className="flex gap-3 sm:gap-4 pb-2" style={{ width: 'max-content' }}>
         {template.columns.map((column) => {
           const displayCards = getDisplayableCards(column.id);
           
           return (
             <div
               key={column.id}
-              className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 min-h-[400px] flex-shrink-0"
-              style={{ width: '280px' }}
+              className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 sm:p-4 min-h-[350px] sm:min-h-[400px] flex-shrink-0"
+              style={{ width: '260px' }}
             >
               {/* Column Header */}
               <div
-                className="flex items-center gap-2 mb-4 pb-2 border-b-2"
+                className="flex items-center gap-2 mb-3 sm:mb-4 pb-2 border-b-2"
                 style={{ borderBottomColor: column.color }}
               >
                 <div

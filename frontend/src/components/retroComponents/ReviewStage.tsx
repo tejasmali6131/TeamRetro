@@ -210,7 +210,7 @@ export default function ReviewStage({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Top Voted Items Summary */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
           <div className="flex items-center gap-2 mb-4">
@@ -299,7 +299,7 @@ export default function ReviewStage({
                   rows={2}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 resize-none"
                 />
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
                     <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Assignee</label>
                     <select
@@ -406,7 +406,7 @@ export default function ReviewStage({
           <Users className="w-5 h-5 text-kone-blue dark:text-kone-lightBlue" />
           <h4 className="font-semibold text-gray-900 dark:text-gray-100">Team Participation</h4>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
           {participants.map(participant => {
             const stats = getParticipantStats(participant, cards, votes, actionItems);
             
@@ -498,7 +498,7 @@ function ActionItemCard({
             placeholder="Description (optional)..."
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 resize-none"
           />
-          <div className="grid grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
             <div>
               <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Assignee</label>
               <select

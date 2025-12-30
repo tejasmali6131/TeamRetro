@@ -453,7 +453,7 @@ export default function ReportStage({
         </div>
 
         {/* Statistics Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4 mb-6 sm:mb-8">
           <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 text-center">
             <Users className="w-6 h-6 text-blue-600 dark:text-blue-400 mx-auto mb-2" />
             <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{participants.length}</div>
@@ -596,7 +596,7 @@ export default function ReportStage({
             <BarChart3 className="w-5 h-5 text-purple-600 dark:text-purple-400" />
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Feedback by Category</h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {template.columns.map(column => {
               const colCards = columnData[column.id]?.cards || [];
               const colGroups = columnData[column.id]?.groups || [];

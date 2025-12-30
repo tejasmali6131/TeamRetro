@@ -193,17 +193,3 @@ export const getAllTemplates = (): Template[] => {
 export const getTemplateById = (id: string): Template | undefined => {
   return templates.find(template => template.id === id);
 };
-
-// Helper function to add a custom template
-export const addTemplate = (template: Omit<Template, 'id' | 'createdAt' | 'updatedAt'>): Template => {
-  const now = new Date();
-  const newTemplate: Template = {
-    ...template,
-    id: `custom-${Date.now()}`,
-    createdAt: now,
-    updatedAt: now,
-    isDefault: false
-  };
-  templates.push(newTemplate);
-  return newTemplate;
-};

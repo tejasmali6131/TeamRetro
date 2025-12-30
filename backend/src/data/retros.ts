@@ -82,12 +82,3 @@ export const addParticipant = (participant: Omit<Participant, 'id' | 'joinedAt'>
 export const getParticipantsByRetroId = (retroId: string): Participant[] => {
   return participants.filter(p => p.retroId === retroId);
 };
-
-// Helper function to remove a participant
-export const removeParticipant = (id: string): boolean => {
-  const index = participants.findIndex(p => p.id === id);
-  if (index === -1) return false;
-  
-  participants.splice(index, 1);
-  return true;
-};

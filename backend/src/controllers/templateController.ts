@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { getAllTemplates as getTemplates, getTemplateById as getTemplate, addTemplate } from '../data/templates';
+import { getAllTemplates as getTemplates, getTemplateById as getTemplate } from '../data/templates';
 
 export const getAllTemplates = (_req: Request, res: Response): void => {
   try {
@@ -25,29 +25,5 @@ export const getTemplateById = (req: Request, res: Response): void => {
   } catch (error) {
     console.error('Error fetching template:', error);
     res.status(500).json({ message: 'Failed to fetch template' });
-  }
-};
-
-export const createTemplate = (req: Request, res: Response): void => {
-  try {
-    const { name, description, columns } = req.body;
-    
-    if (!name || !columns || columns.length === 0) {
-      res.status(400).json({ message: 'Name and columns are required' });
-      return;
-    }
-    
-    const newTemplate = addTemplate({
-      name,
-      description,
-      columns,
-      isDefault: false,
-      createdBy: 'user'
-    });
-    
-    res.status(201).json(newTemplate);
-  } catch (error) {
-    console.error('Error creating template:', error);
-    res.status(500).json({ message: 'Failed to create template' });
   }
 };

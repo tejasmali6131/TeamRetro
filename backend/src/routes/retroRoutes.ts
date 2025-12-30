@@ -6,8 +6,6 @@ import {
   updateRetro,
   deleteRetro,
   updateRetroStatus,
-  joinRetro,
-  getRetroParticipants,
 } from '../controllers/retroController';
 import { validateRetroCreation } from '../middleware/validation';
 
@@ -22,9 +20,5 @@ router.delete('/:id', deleteRetro);
 
 // Update retro status
 router.patch('/:id/status', updateRetroStatus);
-
-// Participant routes
-router.post('/:id/join', joinRetro);
-router.get('/:id/participants', getRetroParticipants);
 
 export default router;
